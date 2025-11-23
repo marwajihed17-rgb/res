@@ -1,0 +1,50 @@
+export type ModuleId = 'invoice' | 'ga' | 'kdr';
+
+const WEBHOOKS: Record<ModuleId, string> = {
+  invoice: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
+  ga: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
+  kdr: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
+};
+
+export async function sendChat(
+  moduleId: ModuleId,
+  payload: {
+    messageId: string;
+    user: string;
+    module: ModuleId;
+    text: string;
+    attachments?: { name: string; type?: string; size?: number; url?: string }[];
+    ts: number;
+    conversationId?: string | null;
+  },
+): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
+  const url = typeof window !== 'undefined' && window.location.host.includes('vercel.app')
+    ? `/api/chat/${moduleId}`
+    : WEBHOOKS[moduleId];
+  try {
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 15000);
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+      mode: 'cors',
+    });
+    clearTimeout(t);
+    if (!res.ok) {
+      const errText = await res.text().catch(() => 'Service unavailable');
+      return { text: errText };
+    }
+    const data = await res.json().catch(() => null);
+    if (!data) return null;
+    const text = typeof (data.reply ?? data.text) === 'string' ? (data.reply ?? data.text) : JSON.stringify(data);
+    const attachments = Array.isArray(data.attachments) ? data.attachments : [];
+    return { text, attachments };
+  } catch {
+    return null;
+  }
+}
