@@ -18,13 +18,12 @@ export async function sendChat(
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
-  const url = typeof window !== 'undefined' && window.location.host.includes('vercel.app')
-    ? `/api/chat/${moduleId}`
-    : WEBHOOKS[moduleId];
+  const apiUrl = `/api/chat/${moduleId}`;
+  const directUrl = WEBHOOKS[moduleId];
   try {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(url, {
+    const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +36,22 @@ export async function sendChat(
     clearTimeout(t);
     if (!res.ok) {
       const errText = await res.text().catch(() => 'Service unavailable');
-      return { text: errText };
+      console.warn('chat_api_failed', { moduleId, status: res.status, errText });
+      // fallback to direct webhook
+      const directRes = await fetch(directUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        mode: 'cors',
+      }).catch(() => null as any);
+      if (!directRes || !directRes.ok) return { text: errText };
+      const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
+      const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
+      const attachments = Array.isArray(directJson.attachments) ? directJson.attachments : [];
+      return { text, attachments };
     }
     const data = await res.json().catch(() => null);
     if (!data) return null;
