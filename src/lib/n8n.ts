@@ -18,7 +18,7 @@ export async function sendChat(
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
-  const apiUrl = `/api/chat/${moduleId}`;
+  const apiUrl = `/api/send`;
   const directUrl = WEBHOOKS[moduleId];
   try {
     const controller = new AbortController();
