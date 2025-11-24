@@ -9,6 +9,14 @@ const WEBHOOKS: Record<ModuleId, string> = {
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -19,8 +27,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Invalid module' });
     }
     const webhook = WEBHOOKS[moduleId];
-    const maxRetries = Number(process.env.N8N_RETRY_MAX ?? 4);
-    const baseDelayMs = Number(process.env.N8N_RETRY_BASE_MS ?? 500);
+    const maxRetries = Number(process.env.N8N_RETRY_MAX ?? 1);
+    const baseDelayMs = Number(process.env.N8N_RETRY_BASE_MS ?? 200);
 
     const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -47,13 +55,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         // Handle non-OK with backoff
         attempt += 1;
-        const backoff = Math.min(30000, baseDelayMs * 2 ** (attempt - 1));
+        const backoff = Math.min(3000, baseDelayMs * 2 ** (attempt - 1));
         console.warn('api/send retry', { moduleId, attempt, status: r.status, backoff });
         await delay(backoff);
       } catch (e: any) {
         // Network error; retry with backoff
         attempt += 1;
-        const backoff = Math.min(30000, baseDelayMs * 2 ** (attempt - 1));
+        const backoff = Math.min(3000, baseDelayMs * 2 ** (attempt - 1));
         console.warn('api/send network error retry', { moduleId, attempt, backoff, error: e?.message });
         await delay(backoff);
       }
