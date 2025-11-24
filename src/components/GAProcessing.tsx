@@ -36,13 +36,12 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
-      const resp = await sendChat('ga', {
-        messageId: id,
-        user,
-        module: 'ga',
+      const MODULE: 'ga' = 'ga';
+      const resp = await sendChat(MODULE, {
+        sender: user,
+        module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        ts,
         conversationId: null,
       });
       if (resp) {

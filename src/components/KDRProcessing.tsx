@@ -36,13 +36,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
-      const resp = await sendChat('kdr', {
-        messageId: id,
-        user,
-        module: 'kdr',
+      const MODULE: 'kdr' = 'kdr';
+      const resp = await sendChat(MODULE, {
+        sender: user,
+        module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        ts,
         conversationId: null,
       });
       if (resp) {

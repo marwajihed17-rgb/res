@@ -9,12 +9,10 @@ const WEBHOOKS: Record<ModuleId, string> = {
 export async function sendChat(
   moduleId: ModuleId,
   payload: {
-    messageId: string;
-    user: string;
+    sender: string;
     module: ModuleId;
     text: string;
     attachments?: { name: string; type?: string; size?: number; url?: string }[];
-    ts: number;
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {

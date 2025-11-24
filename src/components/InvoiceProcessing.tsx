@@ -37,14 +37,11 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
-      const resp = await sendChat('invoice', {
-        messageId: id,
-        user,
-        module: 'invoice',
+      const resp = await sendChat(MODULE, {
+        sender: user,
+        module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        ts,
-        // align with downstream HTTP node expectations
         conversationId: null,
       });
       if (resp) {
@@ -247,3 +244,4 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
     </div>
   );
 }
+  const MODULE: 'invoice' = 'invoice';
