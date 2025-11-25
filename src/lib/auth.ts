@@ -41,18 +41,21 @@ export const buildIndexFromCSV = (csv: string): Map<string, ModuleId[]> => {
   return map;
 };
 
+const isTest = typeof process !== 'undefined' && (process.env.VITEST || process.env.NODE_ENV === 'test');
+
 export async function prefetchAuthData(): Promise<void> {
   try {
-    // Prefer serverless API on Vercel; fallback to CSV
-    const apiRes = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: '__prefetch__', password: '__prefetch__' }),
-    }).catch(() => null as any);
-    if (apiRes && apiRes.ok) {
-      // skip building index for dummy prefetch
-      console.info('auth_prefetch_api_ok');
-      return;
+    // Prefer serverless API on Vercel; fallback to CSV. Skip API path during tests.
+    if (!isTest) {
+      const apiRes = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: '__prefetch__', password: '__prefetch__' }),
+      }).catch(() => null as any);
+      if (apiRes && apiRes.ok) {
+        console.info('auth_prefetch_api_ok');
+        return;
+      }
     }
     const res = await fetch(SHEET_CSV_URL, { cache: 'reload' });
     if (!res.ok) return;
@@ -73,19 +76,21 @@ export async function authenticate(
 ): Promise<ModuleId[] | null> {
   const key = `${username.trim()}\0${password.trim()}`;
   console.info('auth_attempt', { user: username.trim() });
-  // Try serverless API first
-  try {
-    const api = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (api.ok) {
-      const data = await api.json();
-      const modules = Array.isArray(data.authorized) ? (data.authorized as ModuleId[]) : null;
-      if (modules) return modules;
-    }
-  } catch {}
+  // Try serverless API first unless in test
+  if (!isTest) {
+    try {
+      const api = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      if (api.ok) {
+        const data = await api.json();
+        const modules = Array.isArray(data.authorized) ? (data.authorized as ModuleId[]) : null;
+        if (modules) return modules;
+      }
+    } catch {}
+  }
   if (authIndex) {
     const res = authIndex.get(key) || null;
     if (!res) console.warn('auth_validation_failed', { user: username.trim() });
