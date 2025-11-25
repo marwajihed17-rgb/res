@@ -4,8 +4,8 @@ type ModuleId = 'invoice' | 'kdr' | 'ga';
 
 const WEBHOOKS: Record<ModuleId, string> = {
   invoice: process.env.N8N_WEBHOOK_URL_INVOICE || 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
-  ga: process.env.N8N_WEBHOOK_URL_GA || 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
-  kdr: process.env.N8N_WEBHOOK_URL_KDR || 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
+  ga: process.env.N8N_WEBHOOK_URL_GA || 'https://n8n.srv1009033.hstgr.cloud/webhook/GA',
+  kdr: process.env.N8N_WEBHOOK_URL_KDR || 'https://n8n.srv1009033.hstgr.cloud/webhook/KDR',
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
