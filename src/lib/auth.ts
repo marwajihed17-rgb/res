@@ -41,28 +41,52 @@ export const buildIndexFromCSV = (csv: string): Map<string, ModuleId[]> => {
   return map;
 };
 
-const isTest = typeof process !== 'undefined' && (process.env.VITEST || process.env.NODE_ENV === 'test');
+async function parseWithWorker(csv: string): Promise<Map<string, ModuleId[]>> {
+  try {
+    const worker = new Worker(new URL('../workers/authIndexWorker.ts', import.meta.url), { type: 'module' });
+    const entries = await new Promise<[string, ModuleId[]][]>((resolve, reject) => {
+      const onMessage = (e: MessageEvent) => {
+        worker.removeEventListener('message', onMessage as any);
+        resolve(e.data as [string, ModuleId[]][]);
+        worker.terminate();
+      };
+      const onError = (e: any) => {
+        worker.removeEventListener('error', onError as any);
+        reject(e);
+        worker.terminate();
+      };
+      worker.addEventListener('message', onMessage as any);
+      worker.addEventListener('error', onError as any);
+      worker.postMessage(csv);
+    });
+    return new Map(entries);
+  } catch {
+    return buildIndexFromCSV(csv);
+  }
+}
 
 export async function prefetchAuthData(): Promise<void> {
   try {
-    // Prefer serverless API on Vercel; fallback to CSV. Skip API path during tests.
-    if (!isTest) {
-      const apiRes = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: '__prefetch__', password: '__prefetch__' }),
-      }).catch(() => null as any);
-      if (apiRes && apiRes.ok) {
-        console.info('auth_prefetch_api_ok');
-        return;
-      }
+    // Prefer serverless API on Vercel; fallback to CSV
+    const apiRes = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: '__prefetch__', password: '__prefetch__' }),
+    }).catch(() => null as any);
+    if (apiRes && apiRes.ok) {
+      // skip building index for dummy prefetch
+      console.info('auth_prefetch_api_ok');
+      return;
     }
+    const t0 = performance.now();
     const res = await fetch(SHEET_CSV_URL, { cache: 'reload' });
     if (!res.ok) return;
     const csv = await res.text();
-    const index = buildIndexFromCSV(csv);
+    const t1 = performance.now();
+    const index = await parseWithWorker(csv);
     authIndex = index;
     console.info('auth_prefetch_ok', { rows: index.size });
+    console.debug('auth_prefetch_net_ms', Math.round(t1 - t0));
     try {
       const serialized: [string, ModuleId[]][] = Array.from(index.entries());
       sessionStorage.setItem('authIndexV1', JSON.stringify(serialized));
@@ -76,21 +100,19 @@ export async function authenticate(
 ): Promise<ModuleId[] | null> {
   const key = `${username.trim()}\0${password.trim()}`;
   console.info('auth_attempt', { user: username.trim() });
-  // Try serverless API first unless in test
-  if (!isTest) {
-    try {
-      const api = await fetch('/api/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      if (api.ok) {
-        const data = await api.json();
-        const modules = Array.isArray(data.authorized) ? (data.authorized as ModuleId[]) : null;
-        if (modules) return modules;
-      }
-    } catch {}
-  }
+  // Try serverless API first
+  try {
+    const api = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (api.ok) {
+      const data = await api.json();
+      const modules = Array.isArray(data.authorized) ? (data.authorized as ModuleId[]) : null;
+      if (modules) return modules;
+    }
+  } catch {}
   if (authIndex) {
     const res = authIndex.get(key) || null;
     if (!res) console.warn('auth_validation_failed', { user: username.trim() });
@@ -111,7 +133,7 @@ export async function authenticate(
   const res = await fetch(SHEET_CSV_URL);
   if (!res.ok) return null;
   const csv = await res.text();
-  const index = buildIndexFromCSV(csv);
+  const index = await parseWithWorker(csv);
   authIndex = index;
   const out = index.get(key) || null;
   const t1 = performance.now();

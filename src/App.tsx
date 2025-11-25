@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { prefetchAuthData } from "./lib/auth";
+import { PerfMonitor } from "./components/PerfMonitor";
+import { perf } from "./lib/perf";
 import { LoginPage } from "./components/LoginPage";
 import { Dashboard } from "./components/Dashboard";
 import { InvoiceProcessing } from "./components/InvoiceProcessing";
@@ -21,9 +23,9 @@ export default function App() {
     const applyHash = () => {
       const h = window.location.hash.replace('#', '');
       if (h === '/modules') setCurrentPage('dashboard');
-      else if (h === '/chat/invoice') setCurrentPage('invoice');
-      else if (h === '/chat/ga') setCurrentPage('ga');
-      else if (h === '/chat/kdr') setCurrentPage('kdr');
+      else if (h === '/chat/module1') setCurrentPage('invoice');
+      else if (h === '/chat/module2') setCurrentPage('ga');
+      else if (h === '/chat/module3') setCurrentPage('kdr');
       else setCurrentPage('login');
     };
     window.addEventListener('hashchange', applyHash);
@@ -33,12 +35,14 @@ export default function App() {
   }, []);
 
   const go = (page: "login" | "dashboard" | "invoice" | "kdr" | "ga") => {
+    perf.startMark('navigate');
     setCurrentPage(page);
     if (page === 'dashboard') window.location.hash = '/modules';
-    else if (page === 'invoice') window.location.hash = '/chat/invoice';
-    else if (page === 'ga') window.location.hash = '/chat/ga';
-    else if (page === 'kdr') window.location.hash = '/chat/kdr';
+    else if (page === 'invoice') window.location.hash = '/chat/module1';
+    else if (page === 'ga') window.location.hash = '/chat/module2';
+    else if (page === 'kdr') window.location.hash = '/chat/module3';
     else window.location.hash = '/login';
+    perf.endMark('navigate');
   };
 
   return (
@@ -58,6 +62,7 @@ export default function App() {
 
       {/* Content */}
       <div className="relative z-10">
+        {import.meta.env.DEV && <PerfMonitor />}
         {currentPage === "login" && (
           <LoginPage
             onLogin={(auth, user) => {
