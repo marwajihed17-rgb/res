@@ -22,11 +22,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   try {
     const payload = req.body || {};
-    const moduleId = String(payload.module || '').toLowerCase() as ModuleId;
-    if (!['invoice', 'ga', 'kdr'].includes(moduleId)) {
+    const moduleParam = String((req.query.module ?? req.headers['x-module'] ?? payload.module ?? '')).toLowerCase();
+    if (!['invoice', 'ga', 'kdr'].includes(moduleParam)) {
       return res.status(400).json({ error: 'Invalid module' });
     }
+    const moduleId = moduleParam as ModuleId;
     const webhook = WEBHOOKS[moduleId];
+    const forwardBody = {
+      sender: payload.sender,
+      text: payload.text,
+      conversationId: payload.conversationId ?? null,
+    };
     const maxRetries = Number(process.env.N8N_RETRY_MAX ?? 1);
     const baseDelayMs = Number(process.env.N8N_RETRY_BASE_MS ?? 200);
 
@@ -43,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          body: JSON.stringify(payload),
+          body: JSON.stringify(forwardBody),
         });
         lastStatus = r.status;
         const textBody = await r.text();
