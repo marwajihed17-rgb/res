@@ -1,9 +1,9 @@
 export type ModuleId = 'invoice' | 'ga' | 'kdr';
 
 const WEBHOOKS: Record<ModuleId, string> = {
-  invoice: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
-  ga: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
-  kdr: 'https://n8n.srv1009033.hstgr.cloud/webhook/process',
+  invoice: 'https://n8n.srv1009033.hstgr.cloud/webhook/invoice',
+  ga: 'https://n8n.srv1009033.hstgr.cloud/webhook/GA',
+  kdr: 'https://n8n.srv1009033.hstgr.cloud/webhook/KDR',
 };
 
 export async function sendChat(
