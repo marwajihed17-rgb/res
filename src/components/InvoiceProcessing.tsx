@@ -31,23 +31,20 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
-      const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
       const id = `${Date.now()}-u`;
       const ts = Date.now();
-      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
+      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: [], ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const resp = await sendChat(MODULE, {
         sender: user,
-        module: MODULE,
         text: message.trim(),
-        attachments: payloadAttachments,
         conversationId: null,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
-        setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts }]);
+        setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: [], ts: rts }]);
       } else {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();

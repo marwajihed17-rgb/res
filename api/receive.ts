@@ -14,14 +14,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   try {
     const payload = req.body || {};
-    console.log('api/receive', payload);
-    const replyText = typeof payload.text === 'string' && payload.text.trim().length > 0
-      ? `🟢 Process started: ${payload.text}`
-      : '🟢 Process started';
+(-è)    console.log('api/receive', payload);
     const body = {
-      sender: 'bot',
-      status: 'started',
-      reply: replyText,
+      sender: payload.sender ?? 'bot',
+      status: payload.status ?? 'completed',
+      reply: payload.reply ?? '🟢 ✅ Process completed successfully',
       conversationId: payload.conversationId ?? null,
       attachments: Array.isArray(payload.attachments) ? payload.attachments : [],
       module: payload.module ?? 'unknown',

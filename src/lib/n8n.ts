@@ -10,9 +10,7 @@ export async function sendChat(
   moduleId: ModuleId,
   payload: {
     sender: string;
-    module: ModuleId;
     text: string;
-    attachments?: { name: string; type?: string; size?: number; url?: string }[];
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
@@ -48,14 +46,12 @@ export async function sendChat(
       if (!directRes || !directRes.ok) return { text: errText };
       const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
       const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
-      const attachments = Array.isArray(directJson.attachments) ? directJson.attachments : [];
-      return { text, attachments };
+      return { text };
     }
     const data = await res.json().catch(() => null);
     if (!data) return null;
     const text = typeof (data.reply ?? data.text) === 'string' ? (data.reply ?? data.text) : JSON.stringify(data);
-    const attachments = Array.isArray(data.attachments) ? data.attachments : [];
-    return { text, attachments };
+    return { text };
   } catch {
     return null;
   }
