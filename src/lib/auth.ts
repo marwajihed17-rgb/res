@@ -67,17 +67,6 @@ async function parseWithWorker(csv: string): Promise<Map<string, ModuleId[]>> {
 
 export async function prefetchAuthData(): Promise<void> {
   try {
-    // Prefer serverless API on Vercel; fallback to CSV
-    const apiRes = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: '__prefetch__', password: '__prefetch__' }),
-    }).catch(() => null as any);
-    if (apiRes && apiRes.ok) {
-      // skip building index for dummy prefetch
-      console.info('auth_prefetch_api_ok');
-      return;
-    }
     const t0 = performance.now();
     const res = await fetch(SHEET_CSV_URL, { cache: 'reload' });
     if (!res.ok) return;
@@ -100,19 +89,7 @@ export async function authenticate(
 ): Promise<ModuleId[] | null> {
   const key = `${username.trim()}\0${password.trim()}`;
   console.info('auth_attempt', { user: username.trim() });
-  // Try serverless API first
-  try {
-    const api = await fetch('/api/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (api.ok) {
-      const data = await api.json();
-      const modules = Array.isArray(data.authorized) ? (data.authorized as ModuleId[]) : null;
-      if (modules) return modules;
-    }
-  } catch {}
+  // Direct CSV path
   if (authIndex) {
     const res = authIndex.get(key) || null;
     if (!res) console.warn('auth_validation_failed', { user: username.trim() });

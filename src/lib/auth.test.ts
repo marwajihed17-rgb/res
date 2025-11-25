@@ -38,33 +38,23 @@ describe('session-backed authenticate', () => {
 
   it('falls back to network and builds index', async () => {
     __resetAuthIndex();
-    const mockFetch = vi.fn((url: any) => {
-      if (typeof url === 'string' && url.includes('/api/auth')) {
-        return Promise.resolve({ ok: false });
-      }
-      return Promise.resolve({ ok: true, text: async () => csv });
-    });
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, text: async () => csv });
     // @ts-expect-error override
     global.fetch = mockFetch;
     const res = await authenticate('bochra', 'bochra123');
     expect(res).toEqual(['kdr']);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('prefetch verification', () => {
   it('prefetches and stores index', async () => {
-    const mockFetch = vi.fn((url: any) => {
-      if (typeof url === 'string' && url.includes('/api/auth')) {
-        return Promise.resolve({ ok: false });
-      }
-      return Promise.resolve({ ok: true, text: async () => csv });
-    });
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, text: async () => csv });
     // @ts-expect-error override
     global.fetch = mockFetch;
     await prefetchAuthData();
     const stored = sessionStorage.getItem('authIndexV1');
     expect(stored).toBeTruthy();
-    expect(mockFetch).toHaveBeenCalledTimes(2);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
