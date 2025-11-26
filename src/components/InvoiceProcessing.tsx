@@ -113,7 +113,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="border-b border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md">
+      <header className="chat-header border-b border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md" style={{ height: 'var(--chat-header-height)' }}>
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
@@ -167,7 +167,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 overflow-y-auto">
+      <main className="chat-main p-4">
         <div className="max-w-4xl mx-auto space-y-3">
           {messages.length === 0 && (
             <p className="text-gray-500 text-center">Start a conversation to begin processing</p>
@@ -200,7 +200,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       </main>
 
       {/* Input Area */}
-      <footer className="border-t border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md">
+      <footer className="chat-footer border-t border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md" style={{ height: 'var(--chat-footer-height)' }}>
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3 max-w-4xl mx-auto">
             <Button
