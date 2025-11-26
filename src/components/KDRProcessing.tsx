@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Package } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
+import { subscribeGlobalChat } from '../lib/realtime';
 
 interface KDRProcessingProps {
   onBack: () => void;
@@ -14,7 +15,7 @@ interface KDRProcessingProps {
 
 export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<{ id: string; role: 'user' | 'system'; text: string; attachments: { name: string; url?: string }[]; ts: number }[]>([]);
+  const [messages, setMessages] = useState<{ id: string; role: 'user' | 'system'; text: string; status?: string; conversationId?: string | null; attachments: { name: string; url?: string }[]; ts: number }[]>([]);
   const [attachments, setAttachments] = useState<{
     id: string;
     file: File;
@@ -27,6 +28,13 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const [typing] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  useEffect(() => {
+    const unsub = subscribeGlobalChat((data) => {
+      const role = data.sender === 'bot' ? 'system' : 'user';
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
+    });
+    return () => unsub();
+  }, []);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -165,12 +173,14 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             <p className="text-gray-500 text-center">Start a conversation to begin processing</p>
           )}
           {messages.map((m) => (
-            <div key={m.id} className="flex animate-fade-in">
-              <div
-                className={m.role === 'user' ? "ml-auto max-w-[75%]" : "mr-auto max-w-[75%]"}
-                style={{ alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start' }}
-              >
-                <div className={m.role === 'user' ? "rounded-3xl px-4 py-2 bg-gradient-to-r from-[#4A90F5] to-[#C74AFF] text-white animated-gradient" : "rounded-3xl px-4 py-2 bg-[#1a1f2e]/80 border border-[#2a3144] text-white"}>
+            <div
+              key={m.id}
+              className="flex animate-fade-in"
+              style={{ justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}
+            >
+              <div style={{ maxWidth: '75%' }}>
+                <div className={m.role === 'user' ? "rounded-xl px-4 py-2 bg-gradient-to-r from-[#4A90F5] to-[#C74AFF] text-white animated-gradient" : "rounded-xl px-4 py-2 bg-[#1a1f2e]/80 border border-[#2a3144] text-white"}>
+                  {m.status && <span className="text-xs text-gray-400">{m.status}</span>}
                   {m.text && <div className="whitespace-pre-wrap">{m.text}</div>}
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
