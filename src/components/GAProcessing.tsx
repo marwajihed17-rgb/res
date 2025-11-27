@@ -202,26 +202,28 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
           <div ref={endRef} />
         </div>
       </main>
-      <PreviewStrip
-        items={attachments}
-        onRemove={(id) => {
-          const a = attachments.find((x) => x.id === id);
-          if (a?.cancel && a.status === 'uploading') a.cancel();
-          if (a?.previewUrl) URL.revokeObjectURL(a.previewUrl);
-          setAttachments((prev) => prev.filter((x) => x.id !== id));
-        }}
-        onReorder={(src, dst) => {
-          setAttachments((prev) => {
-            const s = prev.findIndex((x) => x.id === src);
-            const d = prev.findIndex((x) => x.id === dst);
-            if (s === -1 || d === -1) return prev;
-            const next = [...prev];
-            const [it] = next.splice(s, 1);
-            next.splice(d, 0, it);
-            return next;
-          });
-        }}
-      />
+      {attachments.length > 0 && (
+        <PreviewStrip
+          items={attachments}
+          onRemove={(id) => {
+            const a = attachments.find((x) => x.id === id);
+            if (a?.cancel && a.status === 'uploading') a.cancel();
+            if (a?.previewUrl) URL.revokeObjectURL(a.previewUrl);
+            setAttachments((prev) => prev.filter((x) => x.id !== id));
+          }}
+          onReorder={(src, dst) => {
+            setAttachments((prev) => {
+              const s = prev.findIndex((x) => x.id === src);
+              const d = prev.findIndex((x) => x.id === dst);
+              if (s === -1 || d === -1) return prev;
+              const next = [...prev];
+              const [it] = next.splice(s, 1);
+              next.splice(d, 0, it);
+              return next;
+            });
+          }}
+        />
+      )}
 
       {/* Input Area */}
       <footer className="chat-footer border-t border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md" style={{ height: 'var(--chat-footer-height)' }}>
