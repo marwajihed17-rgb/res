@@ -26,9 +26,10 @@ export function renderTextWithLinks(text: string): React.ReactNode {
         href={href!}
         target="_blank"
         rel="noopener nofollow"
-        className="cursor-pointer underline-offset-4 hover:underline text-white"
+        className="cursor-pointer underline-offset-4 hover:underline"
+        style={{ color: '#4A90F5' }}
       >
-        [File Link]
+        Open Attachment
       </a>,
     );
     lastIndex = end;

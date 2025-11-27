@@ -88,6 +88,7 @@ export default function App() {
             onBack={() => go("dashboard")}
             onLogout={() => go("login")}
             user={username}
+            conversationId={username}
           />
         )}
         {currentPage === "kdr" && authorized.includes('kdr') && (
@@ -95,6 +96,7 @@ export default function App() {
             onBack={() => go("dashboard")}
             onLogout={() => go("login")}
             user={username}
+            conversationId={username}
           />
         )}
         {currentPage === "ga" && authorized.includes('ga') && (
@@ -102,6 +104,7 @@ export default function App() {
             onBack={() => go("dashboard")}
             onLogout={() => go("login")}
             user={username}
+            conversationId={username}
           />
         )}
       </div>

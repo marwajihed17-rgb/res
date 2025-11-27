@@ -31,7 +31,11 @@ module.exports = async (req, res) => {
       }
     }
 
-    await pusher.trigger('global-chat', 'new-message', body);
+    const cid = typeof body.conversationId === 'string' && body.conversationId.trim().length > 0
+      ? body.conversationId.trim()
+      : (req.query && typeof req.query.userId === 'string' ? req.query.userId.trim() : null);
+    const channel = cid ? `chat-${cid}` : 'global-chat';
+    await pusher.trigger(channel, 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');

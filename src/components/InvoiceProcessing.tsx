@@ -5,16 +5,17 @@ import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeGlobalChat } from '../lib/realtime';
+import { subscribeUserChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface InvoiceProcessingProps {
   onBack: () => void;
   onLogout: () => void;
   user: string;
+  conversationId?: string;
 }
 
-export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingProps) {
+export function InvoiceProcessing({ onBack, onLogout, user, conversationId }: InvoiceProcessingProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'system'; text: string; status?: string; conversationId?: string | null; attachments: { name: string; url?: string }[]; ts: number }[]>([]);
   const [attachments, setAttachments] = useState<{
@@ -31,7 +32,8 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const unsub = subscribeGlobalChat((data) => {
+    const cid = conversationId || user;
+    const unsub = subscribeUserChat(cid, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
@@ -53,7 +55,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: null,
+        conversationId: conversationId || user,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
