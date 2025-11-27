@@ -31,7 +31,13 @@ module.exports = async (req, res) => {
       }
     }
 
-    await pusher.trigger('global-chat', 'new-message', body);
+    const targetUser = req.headers['x-user'] || (req.query ? req.query.user : null);
+    if (!targetUser || typeof targetUser !== 'string' || !targetUser.trim()) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ error: 'Missing x-user header or user query param' }));
+    }
+    const channel = `user-${targetUser.trim()}`;
+    await pusher.trigger(channel, 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
