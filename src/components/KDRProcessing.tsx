@@ -6,6 +6,7 @@ import { Package } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
 import { subscribeGlobalChat } from '../lib/realtime';
+import { renderTextWithLinks } from '../lib/url';
 
 interface KDRProcessingProps {
   onBack: () => void;
@@ -187,7 +188,7 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
               <div style={{ maxWidth: '75%' }}>
                 <div className={m.role === 'user' ? "rounded-xl px-4 py-2 bg-gradient-to-r from-[#4A90F5] to-[#C74AFF] text-white animated-gradient" : "rounded-xl px-4 py-2 bg-[#1a1f2e]/80 border border-[#2a3144] text-white"}>
                   {m.status && <span className="text-xs text-gray-400">{m.status}</span>}
-                  {m.text && <div className="whitespace-pre-wrap">{m.text}</div>}
+                  {m.text && <div className="whitespace-pre-wrap">{renderTextWithLinks(m.text)}</div>}
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
                       {m.attachments.map((f, i) => (
