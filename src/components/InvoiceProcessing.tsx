@@ -75,6 +75,20 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
     }
   };
 
+  const openAttachment = (url?: string) => {
+    if (!url) {
+      alert('Attachment unavailable');
+      return;
+    }
+    try {
+      const w = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!w) alert('Unable to open attachment');
+    } catch (err) {
+      console.error('attachment_open_failed', err);
+      alert('Unable to open attachment');
+    }
+  };
+
   const handleAttachClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -212,7 +226,14 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
                       {m.attachments.map((f, i) => (
-                        <span key={i} className="text-sm underline-offset-4">{f.name}</span>
+                        <a
+                          key={i}
+                          href={f.url}
+                          onClick={(e) => { e.preventDefault(); openAttachment(f.url); }}
+                          className="text-sm underline-offset-4 hover:underline"
+                        >
+                          {f.name}
+                        </a>
                       ))}
                     </div>
                   )}
