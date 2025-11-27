@@ -5,17 +5,16 @@ import { Input } from './ui/input';
 import { BarChart3 } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeUserChat } from '../lib/realtime';
+import { subscribeGlobalChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface GAProcessingProps {
   onBack: () => void;
   onLogout: () => void;
   user: string;
-  conversationId?: string;
 }
 
-export function GAProcessing({ onBack, onLogout, user, conversationId }: GAProcessingProps) {
+export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'system'; text: string; status?: string; conversationId?: string | null; attachments: { name: string; url?: string }[]; ts: number }[]>([]);
   const [attachments, setAttachments] = useState<{
@@ -31,8 +30,7 @@ export function GAProcessing({ onBack, onLogout, user, conversationId }: GAProce
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const cid = conversationId || user;
-    const unsub = subscribeUserChat(cid, (data) => {
+    const unsub = subscribeGlobalChat((data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
@@ -54,7 +52,7 @@ export function GAProcessing({ onBack, onLogout, user, conversationId }: GAProce
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: conversationId || user,
+        conversationId: null,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -156,14 +154,16 @@ export function GAProcessing({ onBack, onLogout, user, conversationId }: GAProce
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" role="group" aria-label="current user">
             <Button
               variant="ghost"
               size="icon"
+              aria-label="User"
               className="text-white hover:bg-[#1a1f2e]"
             >
               <User className="w-5 h-5" />
             </Button>
+            <span className="text-white/90 text-sm" aria-live="polite" aria-atomic="true">{user || 'Unknown'}</span>
             <Button
               variant="ghost"
               size="icon"

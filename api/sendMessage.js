@@ -31,14 +31,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    if (typeof body.conversationId !== 'string' || body.conversationId.trim().length === 0) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ error: 'conversationId is required and must be a non-empty string' }));
-    }
-
-    const cid = body.conversationId.trim();
-    const channel = `chat-${cid}`;
-    await pusher.trigger(channel, 'new-message', body);
+    await pusher.trigger('global-chat', 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');

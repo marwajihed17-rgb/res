@@ -19,8 +19,8 @@ export default function App() {
     try {
       const saved = sessionStorage.getItem('authorizedV1');
       if (saved) setAuthorized(JSON.parse(saved));
-      const savedUser = sessionStorage.getItem('usernameV1');
-      if (savedUser) setUsername(savedUser);
+      const uname = sessionStorage.getItem('usernameV1');
+      if (uname) setUsername(uname);
     } catch {}
     const applyHash = () => {
       const h = window.location.hash.replace('#', '');
@@ -71,7 +71,6 @@ export default function App() {
               setAuthorized(auth);
               setUsername(user);
               try { sessionStorage.setItem('authorizedV1', JSON.stringify(auth)); } catch {}
-              try { sessionStorage.setItem('usernameV1', user); } catch {}
               go("dashboard");
             }}
           />
@@ -82,8 +81,8 @@ export default function App() {
             onNavigate={(page) => go(page)}
             onLogout={() => {
               setAuthorized([]);
-              try { sessionStorage.removeItem('authorizedV1'); } catch {}
               try { sessionStorage.removeItem('usernameV1'); } catch {}
+              setUsername("");
               go("login");
             }}
           />
@@ -91,25 +90,22 @@ export default function App() {
         {currentPage === "invoice" && authorized.includes('invoice') && (
           <InvoiceProcessing
             onBack={() => go("dashboard")}
-            onLogout={() => go("login")}
+            onLogout={() => { try { sessionStorage.removeItem('usernameV1'); } catch {}; setUsername(""); go("login"); }}
             user={username}
-            conversationId={username}
           />
         )}
         {currentPage === "kdr" && authorized.includes('kdr') && (
           <KDRProcessing
             onBack={() => go("dashboard")}
-            onLogout={() => go("login")}
+            onLogout={() => { try { sessionStorage.removeItem('usernameV1'); } catch {}; setUsername(""); go("login"); }}
             user={username}
-            conversationId={username}
           />
         )}
         {currentPage === "ga" && authorized.includes('ga') && (
           <GAProcessing
             onBack={() => go("dashboard")}
-            onLogout={() => go("login")}
+            onLogout={() => { try { sessionStorage.removeItem('usernameV1'); } catch {}; setUsername(""); go("login"); }}
             user={username}
-            conversationId={username}
           />
         )}
       </div>
