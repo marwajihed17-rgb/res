@@ -169,6 +169,33 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       {/* Main Content */}
       <main className="chat-main p-4">
         <div className="max-w-4xl mx-auto space-y-3">
+          {attachments.length > 0 && (
+            <div
+              className="bg-[#0f1419]/50 border border-[#2a3144] rounded-md p-3"
+              style={{ position: 'sticky', top: '8px', zIndex: 20 }}
+            >
+              <div className="text-xs text-gray-400 mb-2">Files to send</div>
+              <div className="flex flex-col gap-2">
+                {attachments.map((a) => (
+                  <AttachmentItem
+                    key={a.id}
+                    name={a.file.name}
+                    size={a.file.size}
+                    type={a.file.type || 'application/octet-stream'}
+                    progress={a.progress}
+                    status={a.status}
+                    error={a.error}
+                    previewUrl={a.previewUrl}
+                    onDelete={() => {
+                      if (a.cancel && a.status === 'uploading') a.cancel();
+                      if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+                      setAttachments((prev) => prev.filter((x) => x.id !== a.id));
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           {messages.length === 0 && (
             <p className="text-gray-500 text-center">Start a conversation to begin processing</p>
           )}
@@ -226,28 +253,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
               <Send className="w-5 h-5" />
             </Button>
           </div>
-          {attachments.length > 0 && (
-            <div className="max-w-4xl mx-auto mt-3 flex flex-col gap-2">
-              {attachments.map((a) => (
-                <AttachmentItem
-                  key={a.id}
-                  name={a.file.name}
-                  size={a.file.size}
-                  type={a.file.type || 'application/octet-stream'}
-                  progress={a.progress}
-                  status={a.status}
-                  error={a.error}
-                  previewUrl={a.previewUrl}
-                  onDelete={() => {
-                    if (a.cancel && a.status === 'uploading') a.cancel();
-                    if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-                    setAttachments((prev) => prev.filter((x) => x.id !== a.id));
-                  }}
-                />
-              ))}
-              <p className="text-xs text-gray-500">Max 25MB per file.</p>
-            </div>
-          )}
+          
           
         </div>
       </footer>
