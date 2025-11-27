@@ -31,10 +31,13 @@ module.exports = async (req, res) => {
       }
     }
 
-    const cid = typeof body.conversationId === 'string' && body.conversationId.trim().length > 0
-      ? body.conversationId.trim()
-      : (req.query && typeof req.query.userId === 'string' ? req.query.userId.trim() : null);
-    const channel = cid ? `chat-${cid}` : 'global-chat';
+    if (typeof body.conversationId !== 'string' || body.conversationId.trim().length === 0) {
+      res.statusCode = 400;
+      return res.end(JSON.stringify({ error: 'conversationId is required and must be a non-empty string' }));
+    }
+
+    const cid = body.conversationId.trim();
+    const channel = `chat-${cid}`;
     await pusher.trigger(channel, 'new-message', body);
 
     res.statusCode = 200;

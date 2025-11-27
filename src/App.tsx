@@ -19,6 +19,8 @@ export default function App() {
     try {
       const saved = sessionStorage.getItem('authorizedV1');
       if (saved) setAuthorized(JSON.parse(saved));
+      const savedUser = sessionStorage.getItem('usernameV1');
+      if (savedUser) setUsername(savedUser);
     } catch {}
     const applyHash = () => {
       const h = window.location.hash.replace('#', '');
@@ -69,6 +71,7 @@ export default function App() {
               setAuthorized(auth);
               setUsername(user);
               try { sessionStorage.setItem('authorizedV1', JSON.stringify(auth)); } catch {}
+              try { sessionStorage.setItem('usernameV1', user); } catch {}
               go("dashboard");
             }}
           />
@@ -79,6 +82,8 @@ export default function App() {
             onNavigate={(page) => go(page)}
             onLogout={() => {
               setAuthorized([]);
+              try { sessionStorage.removeItem('authorizedV1'); } catch {}
+              try { sessionStorage.removeItem('usernameV1'); } catch {}
               go("login");
             }}
           />
