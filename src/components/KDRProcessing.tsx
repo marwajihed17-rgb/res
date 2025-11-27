@@ -227,7 +227,7 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             </Button>
           </div>
           {attachments.length > 0 && (
-            <div className="max-w-4xl mx-auto mt-3 flex flex-col gap-2">
+            <div className="attachments-list max-w-4xl mx-auto mt-3 flex flex-col gap-2">
               {attachments.map((a) => (
                 <AttachmentItem
                   key={a.id}

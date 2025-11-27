@@ -185,7 +185,15 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
                       {m.attachments.map((f, i) => (
-                        <span key={i} className="text-sm underline-offset-4">{f.name}</span>
+                        <a
+                          key={i}
+                          href={f.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm cursor-pointer underline-offset-4 hover:underline"
+                        >
+                          {f.name}
+                        </a>
                       ))}
                     </div>
                   )}
@@ -227,7 +235,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
             </Button>
           </div>
           {attachments.length > 0 && (
-            <div className="max-w-4xl mx-auto mt-3 flex flex-col gap-2">
+            <div className="attachments-list max-w-4xl mx-auto mt-3 flex flex-col gap-2">
               {attachments.map((a) => (
                 <AttachmentItem
                   key={a.id}

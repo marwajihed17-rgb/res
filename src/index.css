@@ -105,7 +105,7 @@
     --color-input: #e4e4e7;
     --color-ring: #18181b;
     --chat-header-height: 64px;
-    --chat-footer-height: 80px;
+    --chat-footer-height: 140px;
   }
 }
 
@@ -1359,7 +1359,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 30;
+  z-index: 40;
 }
 
 .chat-main {
@@ -1636,4 +1636,8 @@ body {
 @property --tw-backdrop-sepia {
   syntax: "*";
   inherits: false
+}
+.attachments-list {
+  max-height: calc(var(--chat-footer-height) - 60px);
+  overflow-y: auto;
 }
