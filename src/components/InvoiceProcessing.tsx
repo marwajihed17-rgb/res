@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, FileImage, FileText as FileDoc, FileSpreadsheet, FileArchive, File as FileGeneric } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
@@ -37,6 +37,8 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
     return () => unsub();
   }, []);
 
+  const MODULE: 'invoice' = 'invoice';
+
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
       const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
@@ -56,6 +58,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
         setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts }]);
+        setAttachments([]);
       } else {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
@@ -87,6 +90,15 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       console.error('attachment_open_failed', err);
       alert('Unable to open attachment');
     }
+  };
+
+  const iconFor = (type?: string) => {
+    const t = (type || '').toLowerCase();
+    if (t.startsWith('image/')) return FileImage;
+    if (t === 'application/pdf' || t.includes('word') || t.includes('text')) return FileDoc;
+    if (t.includes('sheet') || t.includes('excel')) return FileSpreadsheet;
+    if (t.includes('zip')) return FileArchive;
+    return FileGeneric;
   };
 
   const handleAttachClick = () => {
@@ -225,16 +237,21 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
                   {m.text && <div className="whitespace-pre-wrap">{m.text}</div>}
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
-                      {m.attachments.map((f, i) => (
-                        <a
-                          key={i}
-                          href={f.url}
-                          onClick={(e) => { e.preventDefault(); openAttachment(f.url); }}
-                          className="text-sm underline-offset-4 hover:underline"
-                        >
-                          {f.name}
-                        </a>
-                      ))}
+                      {m.attachments.map((f, i) => {
+                        const Icon = iconFor(f.url);
+                        return (
+                          <a
+                            key={i}
+                            href={f.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm underline-offset-4 hover:underline inline-flex items-center gap-2"
+                          >
+                            <Icon className="w-4 h-4" />
+                            {f.name}
+                          </a>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -281,4 +298,3 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
     </div>
   );
 }
-  const MODULE: 'invoice' = 'invoice';
