@@ -41,12 +41,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
       const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
-      const prev = [...attachments];
       setAttachments([]);
-      prev.forEach((a) => {
-        if (a.cancel && a.status === 'uploading') a.cancel();
-        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-      });
       const id = `${Date.now()}-u`;
       const ts = Date.now();
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
@@ -73,7 +68,21 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   };
 
   const handleClearMessages = () => {
+    messages.forEach((m) => {
+      m.attachments.forEach((f) => {
+        if (f.url && f.url.startsWith('blob:')) {
+          try { URL.revokeObjectURL(f.url); } catch {}
+        }
+      });
+    });
     setMessages([]);
+    attachments.forEach((a) => {
+      if (a.cancel && a.status === 'uploading') a.cancel();
+      if (a.previewUrl) {
+        try { URL.revokeObjectURL(a.previewUrl); } catch {}
+      }
+    });
+    setAttachments([]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -197,7 +206,8 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
                           key={i}
                           href={f.url}
                           target="_blank"
-                          rel="noreferrer"
+                          rel="noopener nofollow"
+                          download={f.name}
                           className="text-sm cursor-pointer underline-offset-4 hover:underline"
                         >
                           {f.name}

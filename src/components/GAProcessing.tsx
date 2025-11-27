@@ -40,12 +40,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
       const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
-      const prev = [...attachments];
       setAttachments([]);
-      prev.forEach((a) => {
-        if (a.cancel && a.status === 'uploading') a.cancel();
-        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-      });
       const id = `${Date.now()}-u`;
       const ts = Date.now();
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
@@ -72,7 +67,21 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
   };
 
   const handleClearMessages = () => {
+    messages.forEach((m) => {
+      m.attachments.forEach((f) => {
+        if (f.url && f.url.startsWith('blob:')) {
+          try { URL.revokeObjectURL(f.url); } catch {}
+        }
+      });
+    });
     setMessages([]);
+    attachments.forEach((a) => {
+      if (a.cancel && a.status === 'uploading') a.cancel();
+      if (a.previewUrl) {
+        try { URL.revokeObjectURL(a.previewUrl); } catch {}
+      }
+    });
+    setAttachments([]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -192,7 +201,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
                       {m.attachments.map((f, i) => (
-                        <a key={i} href={f.url} target="_blank" rel="noreferrer" className="text-sm underline-offset-4 hover:underline">{f.name}</a>
+                        <a key={i} href={f.url} target="_blank" rel="noopener nofollow" download={f.name} className="text-sm cursor-pointer underline-offset-4 hover:underline">{f.name}</a>
                       ))}
                     </div>
                   )}
