@@ -1370,14 +1370,6 @@ body {
   padding-bottom: var(--chat-footer-height);
 }
 
-.chat-preview {
-  position: sticky;
-  bottom: 0;
-  height: 150px;
-  max-height: 150px;
-  z-index: 20;
-}
-
 .animate-pulse {
   animation: 6s cubic-bezier(.4, 0, .6, 1) infinite pulse;
 }
