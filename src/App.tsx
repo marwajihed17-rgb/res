@@ -85,6 +85,7 @@ export default function App() {
               setUsername("");
               go("login");
             }}
+            user={username}
           />
         )}
         {currentPage === "invoice" && authorized.includes('invoice') && (

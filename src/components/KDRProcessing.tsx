@@ -155,15 +155,10 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
           </div>
 
           <div className="flex items-center gap-2" role="group" aria-label="current user">
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="User"
-              className="text-white hover:bg-[#1a1f2e]"
-            >
-              <User className="w-5 h-5" />
-            </Button>
-            <span className="text-white/90 text-sm" aria-live="polite" aria-atomic="true">{user || 'Unknown'}</span>
+            <div aria-label="User" className="w-8 h-8 flex items-center justify-center">
+              <User className="w-5 h-5" color="#FFFFFF" />
+            </div>
+            <span className="text-sm" style={{ color: '#FFFFFF' }} aria-live="polite" aria-atomic="true">{user || 'Unknown'}</span>
             <Button
               variant="ghost"
               size="icon"
