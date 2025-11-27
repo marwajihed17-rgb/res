@@ -1,6 +1,8 @@
-export function renderTextWithLinks(text: string) {
+import React from 'react';
+
+export function renderTextWithLinks(text: string): React.ReactNode {
   const urlRegex = /(https?:\/\/[^\s)]+(?:\([^)]*\)[^\s)]*)?)/gi;
-  const parts: Array<string | JSX.Element> = [];
+  const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   while ((match = urlRegex.exec(text)) !== null) {
@@ -10,12 +12,10 @@ export function renderTextWithLinks(text: string) {
     const rawUrl = match[0];
     let href: string | null = null;
     try {
-      // Decode then encode to normalize
       const decoded = decodeURI(rawUrl);
       const url = new URL(decoded);
       href = encodeURI(url.toString());
     } catch {
-      // invalid URL, keep original text
       parts.push(rawUrl);
       lastIndex = end;
       continue;
@@ -25,7 +25,7 @@ export function renderTextWithLinks(text: string) {
         key={`${start}-${end}`}
         href={href!}
         target="_blank"
-        rel="nofollow"
+        rel="noopener nofollow"
         className="cursor-pointer underline-offset-4 hover:underline text-white"
       >
         [File Link]
