@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, FileImage, FileText as FileDoc, FileSpreadsheet, FileArchive, File as FileGeneric } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
@@ -37,8 +37,6 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
     return () => unsub();
   }, []);
 
-  const MODULE: 'invoice' = 'invoice';
-
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
       const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
@@ -58,7 +56,6 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
         setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts }]);
-        setAttachments([]);
       } else {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
@@ -76,29 +73,6 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       e.preventDefault();
       handleSend();
     }
-  };
-
-  const openAttachment = (url?: string) => {
-    if (!url) {
-      alert('Attachment unavailable');
-      return;
-    }
-    try {
-      const w = window.open(url, '_blank', 'noopener,noreferrer');
-      if (!w) alert('Unable to open attachment');
-    } catch (err) {
-      console.error('attachment_open_failed', err);
-      alert('Unable to open attachment');
-    }
-  };
-
-  const iconFor = (type?: string) => {
-    const t = (type || '').toLowerCase();
-    if (t.startsWith('image/')) return FileImage;
-    if (t === 'application/pdf' || t.includes('word') || t.includes('text')) return FileDoc;
-    if (t.includes('sheet') || t.includes('excel')) return FileSpreadsheet;
-    if (t.includes('zip')) return FileArchive;
-    return FileGeneric;
   };
 
   const handleAttachClick = () => {
@@ -195,33 +169,6 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       {/* Main Content */}
       <main className="chat-main p-4">
         <div className="max-w-4xl mx-auto space-y-3">
-          {attachments.length > 0 && (
-            <div
-              className="bg-[#0f1419]/50 border border-[#2a3144] rounded-md p-3"
-              style={{ position: 'sticky', top: '8px', zIndex: 20 }}
-            >
-              <div className="text-xs text-gray-400 mb-2">Files to send</div>
-              <div className="flex flex-col gap-2">
-                {attachments.map((a) => (
-                  <AttachmentItem
-                    key={a.id}
-                    name={a.file.name}
-                    size={a.file.size}
-                    type={a.file.type || 'application/octet-stream'}
-                    progress={a.progress}
-                    status={a.status}
-                    error={a.error}
-                    previewUrl={a.previewUrl}
-                    onDelete={() => {
-                      if (a.cancel && a.status === 'uploading') a.cancel();
-                      if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
-                      setAttachments((prev) => prev.filter((x) => x.id !== a.id));
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
           {messages.length === 0 && (
             <p className="text-gray-500 text-center">Start a conversation to begin processing</p>
           )}
@@ -237,21 +184,13 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
                   {m.text && <div className="whitespace-pre-wrap">{m.text}</div>}
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
-                      {m.attachments.map((f, i) => {
-                        const Icon = iconFor(f.url);
-                        return (
-                          <a
-                            key={i}
-                            href={f.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-sm underline-offset-4 hover:underline inline-flex items-center gap-2"
-                          >
-                            <Icon className="w-4 h-4" />
-                            {f.name}
-                          </a>
-                        );
-                      })}
+                      {m.attachments.map((f, i) => (
+                        f.url ? (
+                          <a key={i} href={f.url} target="_blank" rel="noreferrer" className="text-sm underline-offset-4 hover:underline">{f.name}</a>
+                        ) : (
+                          <span key={i} className="text-sm underline-offset-4">{f.name}</span>
+                        )
+                      ))}
                     </div>
                   )}
                 </div>
@@ -263,6 +202,26 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
           <div ref={endRef} />
         </div>
       </main>
+      <PreviewStrip
+        items={attachments}
+        onRemove={(id) => {
+          const a = attachments.find((x) => x.id === id);
+          if (a?.cancel && a.status === 'uploading') a.cancel();
+          if (a?.previewUrl) URL.revokeObjectURL(a.previewUrl);
+          setAttachments((prev) => prev.filter((x) => x.id !== id));
+        }}
+        onReorder={(src, dst) => {
+          setAttachments((prev) => {
+            const s = prev.findIndex((x) => x.id === src);
+            const d = prev.findIndex((x) => x.id === dst);
+            if (s === -1 || d === -1) return prev;
+            const next = [...prev];
+            const [it] = next.splice(s, 1);
+            next.splice(d, 0, it);
+            return next;
+          });
+        }}
+      />
 
       {/* Input Area */}
       <footer className="chat-footer border-t border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md" style={{ height: 'var(--chat-footer-height)' }}>
@@ -291,10 +250,32 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
               <Send className="w-5 h-5" />
             </Button>
           </div>
-          
+          {attachments.length > 0 && (
+            <div className="max-w-4xl mx-auto mt-3 flex flex-col gap-2">
+              {attachments.map((a) => (
+                <AttachmentItem
+                  key={a.id}
+                  name={a.file.name}
+                  size={a.file.size}
+                  type={a.file.type || 'application/octet-stream'}
+                  progress={a.progress}
+                  status={a.status}
+                  error={a.error}
+                  previewUrl={a.previewUrl}
+                  onDelete={() => {
+                    if (a.cancel && a.status === 'uploading') a.cancel();
+                    if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+                    setAttachments((prev) => prev.filter((x) => x.id !== a.id));
+                  }}
+                />
+              ))}
+              <p className="text-xs text-gray-500">Max 25MB per file.</p>
+            </div>
+          )}
           
         </div>
       </footer>
     </div>
   );
 }
+  const MODULE: 'invoice' = 'invoice';
