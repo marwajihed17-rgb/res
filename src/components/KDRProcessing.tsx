@@ -39,6 +39,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
       const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
+      const prev = [...attachments];
+      setAttachments([]);
+      prev.forEach((a) => {
+        if (a.cancel && a.status === 'uploading') a.cancel();
+        if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
+      });
       const id = `${Date.now()}-u`;
       const ts = Date.now();
       setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
