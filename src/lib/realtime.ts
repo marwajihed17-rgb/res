@@ -7,12 +7,12 @@ export type ChatEvent = {
   conversationId: string | null;
 };
 
-export function subscribeUserChat(username: string | undefined, onMessage: (data: ChatEvent) => void) {
-  if (!username || !username.trim()) return () => {};
+export function subscribeConversation(conversationId: string, onMessage: (data: ChatEvent) => void) {
+  if (!conversationId || !conversationId.trim()) return () => {};
   const key = import.meta.env.VITE_PUSHER_KEY;
   const cluster = import.meta.env.VITE_PUSHER_CLUSTER;
   const pusher = new Pusher(key, { cluster });
-  const channelName = `user-${username.trim()}`;
+  const channelName = `chat-${conversationId.trim()}`;
   const channel = pusher.subscribe(channelName);
   channel.bind('new-message', (data: ChatEvent) => {
     onMessage(data);

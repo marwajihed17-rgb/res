@@ -31,12 +31,10 @@ module.exports = async (req, res) => {
       }
     }
 
-    const targetUser = req.headers['x-user'] || (req.query ? req.query.user : null);
-    if (!targetUser || typeof targetUser !== 'string' || !targetUser.trim()) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ error: 'Missing x-user header or user query param' }));
-    }
-    const channel = `user-${targetUser.trim()}`;
+    const conversationId = typeof body.conversationId === 'string' ? body.conversationId.trim() : '';
+    const channel = conversationId ? `chat-${conversationId}` : 'global-chat';
+    console.log('conversationId =', conversationId);
+    console.log('Pusher channel =', channel);
     await pusher.trigger(channel, 'new-message', body);
 
     res.statusCode = 200;

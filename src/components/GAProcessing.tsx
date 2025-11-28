@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { BarChart3 } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeUserChat } from '../lib/realtime';
+import { subscribeConversation } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface GAProcessingProps {
@@ -27,10 +27,21 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
     cancel?: () => void;
   }[]>([]);
   const [typing] = useState(false);
+  const [conversationId, setConversationId] = useState<string>('');
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const unsub = subscribeUserChat(user, (data) => {
+    const key = `conv:ga:${user || 'unknown'}`;
+    let conv = '';
+    try {
+      const saved = sessionStorage.getItem(key);
+      conv = saved || `${user}-${Date.now()}`;
+      sessionStorage.setItem(key, conv);
+    } catch {
+      conv = `${user}-${Date.now()}`;
+    }
+    setConversationId(conv);
+    const unsub = subscribeConversation(conv, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
@@ -43,7 +54,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
       setAttachments([]);
       const id = `${Date.now()}-u`;
       const ts = Date.now();
-      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
+      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts, conversationId }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'ga' = 'ga';
@@ -52,7 +63,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: null,
+        conversationId: conversationId,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
