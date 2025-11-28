@@ -67,11 +67,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
         attachments: payloadAttachments,
         conversationId: conversationId,
       });
-      if (resp) {
-        const rid = `${Date.now()}-s`;
-        const rts = Date.now();
-        setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts }]);
-      } else {
+      if (!resp || (resp && resp.text === 'Service unavailable')) {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
         setMessages((prev) => [...prev, { id: rid, role: 'system', text: 'Service unavailable. Please try again.', attachments: [], ts: rts }]);
