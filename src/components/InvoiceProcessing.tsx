@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeConversation } from '../lib/realtime';
+import { subscribeGlobalChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface InvoiceProcessingProps {
@@ -28,37 +28,32 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   }[]>([]);
 
   const [typing] = useState(false);
-  const [conversationId, setConversationId] = useState<string>('');
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    // establish conversation id per session
-    const key = 'conv_invoice';
-    const existing = sessionStorage.getItem(key);
-    const cid = existing || `${user}-${Date.now()}`;
-    sessionStorage.setItem(key, cid);
-    setConversationId(cid);
-    const unsub = subscribeConversation(cid, (data) => {
+    const unsub = subscribeGlobalChat((data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
-      const txt = (data as any).message ?? (data as any).reply ?? '';
-      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: txt, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
-  }, [user]);
+  }, []);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
+      const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
       setAttachments([]);
       const id = `${Date.now()}-u`;
       const ts = Date.now();
-      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: [], ts }]);
+      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'invoice' = 'invoice';
       const resp = await sendChat(MODULE, {
         sender: user,
-        message: message.trim(),
-        conversationId,
+        module: MODULE,
+        text: message.trim(),
+        attachments: payloadAttachments,
+        conversationId: null,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -160,11 +155,14 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
             </div>
           </div>
 
-          <div className="flex items-center gap-2" role="group" aria-label="current user">
-            <div aria-label="User" className="w-8 h-8 flex items-center justify-center">
-              <User className="w-5 h-5" color="#FFFFFF" />
-            </div>
-            <span className="text-sm" style={{ color: '#FFFFFF' }} aria-live="polite" aria-atomic="true">{user || 'Unknown'}</span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-[#1a1f2e]"
+            >
+              <User className="w-5 h-5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"

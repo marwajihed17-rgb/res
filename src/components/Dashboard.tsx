@@ -6,10 +6,9 @@ interface DashboardProps {
   authorized: Array<'invoice' | 'kdr' | 'ga'>;
   onNavigate: (page: 'invoice' | 'kdr' | 'ga') => void;
   onLogout: () => void;
-  user?: string;
 }
 
-export function Dashboard({ authorized, onNavigate, onLogout, user }: DashboardProps) {
+export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) {
   const cards = [
     {
       id: 'invoice' as const,
@@ -37,22 +36,14 @@ export function Dashboard({ authorized, onNavigate, onLogout, user }: DashboardP
       <header className="border-b border-[#2a3144] bg-[#0f1419]/50 backdrop-blur-md">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <img src={logo} alt="Retaam Solutions" className="h-10" />
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2" role="group" aria-label="current user">
-              <div aria-label="User" className="w-8 h-8 flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" aria-hidden="true"><path d="M12 12c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5zm0 2c-3.866 0-7 2.239-7 5v2h14v-2c0-2.761-3.134-5-7-5z"/></svg>
-              </div>
-              <span className="text-sm" style={{ color: '#FFFFFF' }} aria-live="polite" aria-atomic="true">{user || 'Unknown'}</span>
-            </div>
-            <Button
-              variant="ghost"
-              onClick={onLogout}
-              className="text-white hover:bg-[#1a1f2e] gap-2 h-9 px-3"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            onClick={onLogout}
+            className="text-white hover:bg-[#1a1f2e] gap-2 h-9 px-3"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </Button>
         </div>
       </header>
 

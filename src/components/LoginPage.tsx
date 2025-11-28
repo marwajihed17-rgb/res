@@ -26,9 +26,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         setLoading(false);
         return;
       }
-      const uname = username.trim();
-      try { sessionStorage.setItem('usernameV1', uname); } catch {}
-      onLogin(authorized, uname);
+      onLogin(authorized, username.trim());
     } catch (err) {
       setError('Unable to verify credentials. Please try again.');
     } finally {
