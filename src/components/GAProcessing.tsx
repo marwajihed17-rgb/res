@@ -28,6 +28,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
   }[]>([]);
   const [typing] = useState(false);
   const [conversationId, setConversationId] = useState<string>('');
+  const recent = useRef<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
@@ -43,6 +44,9 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
     setConversationId(conv);
     const unsub = subscribeConversation(conv, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
+      const key = `${data.reply}|${data.status}|${data.conversationId}`;
+      if (recent.current.has(key)) return;
+      recent.current.add(key);
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
@@ -65,7 +69,15 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
         attachments: payloadAttachments,
         conversationId: conversationId,
       });
-      if (!resp || (resp && resp.text === 'Service unavailable')) {
+      if (resp && resp.text && resp.text !== 'Service unavailable') {
+        const rid = `${Date.now()}-s`;
+        const rts = Date.now();
+        const key = `${resp.text}|success|${conversationId}`;
+        if (!recent.current.has(key)) {
+          recent.current.add(key);
+          setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts, conversationId }]);
+        }
+      } else {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
         setMessages((prev) => [...prev, { id: rid, role: 'system', text: 'Service unavailable. Please try again.', attachments: [], ts: rts }]);
