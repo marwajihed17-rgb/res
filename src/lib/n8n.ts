@@ -10,10 +10,8 @@ export async function sendChat(
   moduleId: ModuleId,
   payload: {
     sender: string;
-    module: ModuleId;
-    text: string;
-    attachments?: { name: string; type?: string; size?: number; url?: string }[];
-    conversationId?: string | null;
+    message: string;
+    conversationId: string;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
   const directUrl = WEBHOOKS[moduleId];
@@ -29,7 +27,7 @@ export async function sendChat(
     }).catch(() => null as any);
     if (!directRes || !directRes.ok) return { text: 'Service unavailable' };
     const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
-    const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
+    const text = typeof (directJson.message ?? directJson.reply ?? directJson.text) === 'string' ? (directJson.message ?? directJson.reply ?? directJson.text) : JSON.stringify(directJson);
     const attachments = Array.isArray(directJson.attachments) ? directJson.attachments : [];
     return { text, attachments };
   } catch {

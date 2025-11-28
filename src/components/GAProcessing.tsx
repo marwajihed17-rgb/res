@@ -28,55 +28,40 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
   }[]>([]);
   const [typing] = useState(false);
   const [conversationId, setConversationId] = useState<string>('');
-  const recent = useRef<Set<string>>(new Set());
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const key = `conv:ga:${user || 'unknown'}`;
-    let conv = '';
-    try {
-      const saved = sessionStorage.getItem(key);
-      conv = saved || `${user}-${Date.now()}`;
-      sessionStorage.setItem(key, conv);
-    } catch {
-      conv = `${user}-${Date.now()}`;
-    }
-    setConversationId(conv);
-    const unsub = subscribeConversation(conv, (data) => {
+    const key = 'conv_ga';
+    const existing = sessionStorage.getItem(key);
+    const cid = existing || `${user}-${Date.now()}`;
+    sessionStorage.setItem(key, cid);
+    setConversationId(cid);
+    const unsub = subscribeConversation(cid, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
-      const key = `${data.reply}|${data.status}|${data.conversationId}`;
-      if (recent.current.has(key)) return;
-      recent.current.add(key);
-      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
+      const txt = (data as any).message ?? (data as any).reply ?? '';
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: txt, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
   }, [user]);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
-      const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
       setAttachments([]);
       const id = `${Date.now()}-u`;
       const ts = Date.now();
-      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: payloadAttachments, ts, conversationId }]);
+      setMessages((prev) => [...prev, { id, role: 'user', text: message.trim(), attachments: [], ts }]);
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'ga' = 'ga';
       const resp = await sendChat(MODULE, {
         sender: user,
-        module: MODULE,
-        text: message.trim(),
-        attachments: payloadAttachments,
-        conversationId: conversationId,
+        message: message.trim(),
+        conversationId,
       });
-      if (resp && resp.text && resp.text !== 'Service unavailable') {
+      if (resp) {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();
-        const key = `${resp.text}|success|${conversationId}`;
-        if (!recent.current.has(key)) {
-          recent.current.add(key);
-          setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts, conversationId }]);
-        }
+        setMessages((prev) => [...prev, { id: rid, role: 'system', text: resp.text, attachments: resp.attachments || [], ts: rts }]);
       } else {
         const rid = `${Date.now()}-s`;
         const rts = Date.now();

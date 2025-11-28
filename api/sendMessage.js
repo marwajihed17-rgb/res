@@ -31,8 +31,8 @@ module.exports = async (req, res) => {
       }
     }
 
-    const conversationId = typeof body.conversationId === 'string' ? body.conversationId.trim() : '';
-    const channel = conversationId ? `chat-${conversationId}` : 'global-chat';
+    const conversationId = body.conversationId;
+    const channel = conversationId ? `chat-${conversationId}` : 'chat-global';
     console.log('conversationId =', conversationId);
     console.log('Pusher channel =', channel);
     await pusher.trigger(channel, 'new-message', body);
