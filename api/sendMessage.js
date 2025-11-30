@@ -31,9 +31,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    const recipient = body.sender;
-    const channel = `user-${recipient}`;
-    await pusher.trigger(channel, 'new-message', body);
+    await pusher.trigger('global-chat', 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
