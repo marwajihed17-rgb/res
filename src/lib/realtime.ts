@@ -7,17 +7,18 @@ export type ChatEvent = {
   conversationId: string | null;
 };
 
-export function subscribeGlobalChat(onMessage: (data: ChatEvent) => void) {
+export function subscribeUserChat(userId: string, onMessage: (data: ChatEvent) => void) {
   const key = import.meta.env.VITE_PUSHER_KEY;
   const cluster = import.meta.env.VITE_PUSHER_CLUSTER;
   const pusher = new Pusher(key, { cluster });
-  const channel = pusher.subscribe('global-chat');
+  const channelName = `user-${userId}`;
+  const channel = pusher.subscribe(channelName);
   channel.bind('new-message', (data: ChatEvent) => {
     onMessage(data);
   });
   return () => {
     channel.unbind_all();
-    pusher.unsubscribe('global-chat');
+    pusher.unsubscribe(channelName);
     pusher.disconnect();
   };
 }
