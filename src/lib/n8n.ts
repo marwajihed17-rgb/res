@@ -2,7 +2,7 @@ export type ModuleId = 'invoice' | 'ga' | 'kdr';
 
 const WEBHOOKS: Record<ModuleId, string> = {
   invoice: 'https://n8n.srv987649.hstgr.cloud/webhook/a043e005-7e94-42cc-b210-83c52ff908d6',
-  ga: 'https://n8n.srv1009033.hstgr.cloud/webhook/ga',
+  ga: 'https://n8n.srv1009033.hstgr.cloud/webhook/GA',
   kdr: 'https://n8n.srv1009033.hstgr.cloud/webhook/KDR',
 };
 
