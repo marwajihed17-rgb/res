@@ -31,14 +31,13 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const conversationId = user || 'anonymous';
+    const existing = localStorage.getItem('conversationId');
+    const conversationId = existing || user || 'anonymous';
     localStorage.setItem('conversationId', conversationId);
     const unsub = subscribeToChat(conversationId, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
-      setMessages((prev) => [
-        ...prev,
-        { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() },
-      ]);
+      const text = (data as any).message ?? data.reply;
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
   }, [user]);
