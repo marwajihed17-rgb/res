@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Package } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeGlobalChat } from '../lib/realtime';
+import { subscribeConversation } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface KDRProcessingProps {
@@ -29,8 +29,9 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const [typing] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+  const conversationId = `${user}-kdr`;
   useEffect(() => {
-    const unsub = subscribeGlobalChat((data) => {
+    const unsub = subscribeConversation(conversationId, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
@@ -52,7 +53,7 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: null,
+        conversationId: conversationId,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
