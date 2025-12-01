@@ -16,21 +16,19 @@ export async function sendChat(
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
-  const directUrl = WEBHOOKS[moduleId];
   try {
-    const directRes = await fetch(directUrl, {
+    const res = await fetch('/api/proxyN8N', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(payload),
-      mode: 'cors',
+      body: JSON.stringify({ ...payload, module: moduleId }),
     }).catch(() => null as any);
-    if (!directRes || !directRes.ok) return { text: 'Service unavailable' };
-    const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
-    const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
-    const attachments = Array.isArray(directJson.attachments) ? directJson.attachments : [];
+    if (!res || !res.ok) return { text: 'Service unavailable' };
+    const json = await res.json().catch(async () => ({ text: await res.text() }));
+    const text = typeof (json.reply ?? json.text) === 'string' ? (json.reply ?? json.text) : JSON.stringify(json);
+    const attachments = Array.isArray(json.attachments) ? json.attachments : [];
     return { text, attachments };
   } catch {
     return null;
