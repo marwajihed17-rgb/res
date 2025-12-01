@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, Lock } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeGlobalChat } from '../lib/realtime';
+import { subscribeUserChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface InvoiceProcessingProps {
@@ -31,12 +31,29 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const unsub = subscribeGlobalChat((data) => {
+    const MODULE = 'invoice';
+    const unsub = subscribeUserChat(user, MODULE, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
-  }, []);
+  }, [user]);
+  useEffect(() => {
+    const key = `chat:invoice:${user}`;
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setMessages(parsed);
+      }
+    } catch {}
+  }, [user]);
+  useEffect(() => {
+    const key = `chat:invoice:${user}`;
+    try {
+      sessionStorage.setItem(key, JSON.stringify(messages));
+    } catch {}
+  }, [messages, user]);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -83,6 +100,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       }
     });
     setAttachments([]);
+    try { sessionStorage.removeItem(`chat:invoice:${user}`); } catch {}
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -145,14 +163,15 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
               <FileText className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-white">Invoice Processing</h1>
-              <div className="text-gray-400 text-sm">{user}</div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-green-500 text-sm">Status</span>
+              <div>
+                <h1 className="text-white">Invoice Processing</h1>
+                <div className="text-gray-400 text-sm">{user}</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-green-500 text-sm">Status</span>
+                  <span className="text-gray-400 text-xs flex items-center gap-1"><Lock className="w-3 h-3" />Private</span>
+                </div>
               </div>
-            </div>
           </div>
           </div>
 
