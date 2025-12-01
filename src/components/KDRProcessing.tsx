@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Package } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeToChat } from '../lib/realtime';
+import { subscribeGlobalChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
-import { UserName } from './UserName';
 
 interface KDRProcessingProps {
   onBack: () => void;
@@ -31,16 +30,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const existing = localStorage.getItem('conversationId');
-    const conversationId = existing || user || 'anonymous';
-    localStorage.setItem('conversationId', conversationId);
-    const unsub = subscribeToChat(conversationId, (data) => {
+    const unsub = subscribeGlobalChat((data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
-      const text = (data as any).message ?? data.reply;
-      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
-  }, [user]);
+  }, []);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -52,13 +47,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'kdr' = 'kdr';
-      const conversationId = localStorage.getItem('conversationId') || user || 'anonymous';
       const resp = await sendChat(MODULE, {
         sender: user,
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId,
+        conversationId: null,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -160,8 +154,14 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <UserName name={user} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-[#1a1f2e]"
+            >
+              <User className="w-5 h-5" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -195,9 +195,6 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
               style={{ justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}
             >
               <div style={{ maxWidth: '75%' }}>
-                <div className={m.role === 'user' ? 'flex justify-end mb-1' : 'flex justify-start mb-1'}>
-                  <UserName name={m.role === 'user' ? user : 'Bot'} />
-                </div>
                 <div className={m.role === 'user' ? "rounded-xl px-4 py-2 bg-gradient-to-r from-[#4A90F5] to-[#C74AFF] text-white animated-gradient" : "rounded-xl px-4 py-2 bg-[#1a1f2e]/80 border border-[#2a3144] text-white"}>
                   {m.status && <span className="text-xs text-gray-400">{m.status}</span>}
                   {m.text && <div className="whitespace-pre-wrap">{renderTextWithLinks(m.text)}</div>}
