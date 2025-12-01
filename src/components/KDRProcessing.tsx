@@ -29,14 +29,34 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const [typing] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-  const conversationId = `${user}-kdr`;
   useEffect(() => {
-    const unsub = subscribeConversation(conversationId, (data) => {
+    const convId = `user:${user}`;
+    const unsub = subscribeConversation(convId, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:kdr`;
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as typeof messages;
+        if (Array.isArray(parsed)) setMessages(parsed);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:kdr`;
+      sessionStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch {}
+  }, [messages, user]);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -48,12 +68,13 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'kdr' = 'kdr';
+      const convId = `user:${user}`;
       const resp = await sendChat(MODULE, {
         sender: user,
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: conversationId,
+        conversationId: convId,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -76,6 +97,11 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       });
     });
     setMessages([]);
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:kdr`;
+      sessionStorage.removeItem(storageKey);
+    } catch {}
     attachments.forEach((a) => {
       if (a.cancel && a.status === 'uploading') a.cancel();
       if (a.previewUrl) {

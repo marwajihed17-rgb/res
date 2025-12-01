@@ -31,13 +31,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    if (!body.conversationId || typeof body.conversationId !== 'string' || body.conversationId.trim().length === 0) {
-      res.statusCode = 400;
-      return res.end(JSON.stringify({ error: 'Invalid conversationId' }));
-    }
-
-    const channel = `conv-${body.conversationId}`;
-    await pusher.trigger(channel, 'new-message', body);
+    const convId = body.conversationId;
+    const channelName = `private-conversation-${convId}`;
+    await pusher.trigger(channelName, 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');

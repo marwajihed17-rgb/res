@@ -30,14 +30,34 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const [typing] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
-  const conversationId = `${user}-invoice`;
   useEffect(() => {
-    const unsub = subscribeConversation(conversationId, (data) => {
+    const convId = `user:${user}`;
+    const unsub = subscribeConversation(convId, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
   }, []);
+
+  useEffect(() => {
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:invoice`;
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as typeof messages;
+        if (Array.isArray(parsed)) setMessages(parsed);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:invoice`;
+      sessionStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch {}
+  }, [messages, user]);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -49,12 +69,13 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'invoice' = 'invoice';
+      const convId = `user:${user}`;
       const resp = await sendChat(MODULE, {
         sender: user,
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: conversationId,
+        conversationId: convId,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -77,6 +98,11 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
       });
     });
     setMessages([]);
+    try {
+      const convId = `user:${user}`;
+      const storageKey = `chat:${convId}:invoice`;
+      sessionStorage.removeItem(storageKey);
+    } catch {}
     attachments.forEach((a) => {
       if (a.cancel && a.status === 'uploading') a.cancel();
       if (a.previewUrl) {
@@ -221,7 +247,6 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
               </div>
             </div>
           ))}
-          
           <div ref={endRef} />
         </div>
       </main>

@@ -16,19 +16,25 @@ export async function sendChat(
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
+  const directUrl = WEBHOOKS[moduleId];
+  const ensuredPayload = {
+    ...payload,
+    conversationId: payload.conversationId ?? `user:${payload.sender}`,
+  };
   try {
-    const res = await fetch('/api/proxyN8N', {
+    const directRes = await fetch(directUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ ...payload, module: moduleId }),
+      body: JSON.stringify(ensuredPayload),
+      mode: 'cors',
     }).catch(() => null as any);
-    if (!res || !res.ok) return { text: 'Service unavailable' };
-    const json = await res.json().catch(async () => ({ text: await res.text() }));
-    const text = typeof (json.reply ?? json.text) === 'string' ? (json.reply ?? json.text) : JSON.stringify(json);
-    const attachments = Array.isArray(json.attachments) ? json.attachments : [];
+    if (!directRes || !directRes.ok) return { text: 'Service unavailable' };
+    const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
+    const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
+    const attachments = Array.isArray(directJson.attachments) ? directJson.attachments : [];
     return { text, attachments };
   } catch {
     return null;
