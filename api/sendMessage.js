@@ -31,7 +31,9 @@ module.exports = async (req, res) => {
       }
     }
 
-    await pusher.trigger('global-chat', 'new-message', body);
+    const sanitize = (s) => String(s || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '_');
+    const channel = `chat-${sanitize(body.sender)}`;
+    await pusher.trigger(channel, 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
