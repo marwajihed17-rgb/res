@@ -21,24 +21,3 @@ export function subscribeGlobalChat(onMessage: (data: ChatEvent) => void) {
     pusher.disconnect();
   };
 }
-
-export function subscribeConversation(conversationId: string, onMessage: (data: ChatEvent) => void) {
-  const key = import.meta.env.VITE_PUSHER_KEY;
-  const cluster = import.meta.env.VITE_PUSHER_CLUSTER;
-  const user = conversationId.startsWith('user:') ? conversationId.slice(5) : conversationId;
-  const pusher = new Pusher(key, {
-    cluster,
-    authEndpoint: '/api/pusherAuth',
-    auth: { headers: { 'X-User': user } },
-  });
-  const channelName = `private-conversation-${conversationId}`;
-  const channel = pusher.subscribe(channelName);
-  channel.bind('new-message', (data: ChatEvent) => {
-    onMessage(data);
-  });
-  return () => {
-    channel.unbind_all();
-    pusher.unsubscribe(channelName);
-    pusher.disconnect();
-  };
-}

@@ -17,10 +17,6 @@ export async function sendChat(
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
   const directUrl = WEBHOOKS[moduleId];
-  const ensuredPayload = {
-    ...payload,
-    conversationId: payload.conversationId ?? `user:${payload.sender}`,
-  };
   try {
     const directRes = await fetch(directUrl, {
       method: 'POST',
@@ -28,7 +24,7 @@ export async function sendChat(
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify(ensuredPayload),
+      body: JSON.stringify(payload),
       mode: 'cors',
     }).catch(() => null as any);
     if (!directRes || !directRes.ok) return { text: 'Service unavailable' };

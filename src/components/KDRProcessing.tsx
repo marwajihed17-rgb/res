@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { Package } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeConversation } from '../lib/realtime';
+import { subscribeGlobalChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface KDRProcessingProps {
@@ -30,33 +30,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const convId = `user:${user}`;
-    const unsub = subscribeConversation(convId, (data) => {
+    const unsub = subscribeGlobalChat((data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
   }, []);
-
-  useEffect(() => {
-    try {
-      const convId = `user:${user}`;
-      const storageKey = `chat:${convId}:kdr`;
-      const saved = sessionStorage.getItem(storageKey);
-      if (saved) {
-        const parsed = JSON.parse(saved) as typeof messages;
-        if (Array.isArray(parsed)) setMessages(parsed);
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      const convId = `user:${user}`;
-      const storageKey = `chat:${convId}:kdr`;
-      sessionStorage.setItem(storageKey, JSON.stringify(messages));
-    } catch {}
-  }, [messages, user]);
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
@@ -68,13 +47,12 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       setMessage('');
       const { sendChat } = await import('../lib/n8n');
       const MODULE: 'kdr' = 'kdr';
-      const convId = `user:${user}`;
       const resp = await sendChat(MODULE, {
         sender: user,
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: convId,
+        conversationId: null,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
@@ -97,11 +75,6 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
       });
     });
     setMessages([]);
-    try {
-      const convId = `user:${user}`;
-      const storageKey = `chat:${convId}:kdr`;
-      sessionStorage.removeItem(storageKey);
-    } catch {}
     attachments.forEach((a) => {
       if (a.cancel && a.status === 'uploading') a.cancel();
       if (a.previewUrl) {
@@ -167,18 +140,19 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
-                <Package className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-white">KDR Processing</h1>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-green-500 text-sm">Status</span>
-                </div>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
+              <Package className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-white">KDR Processing</h1>
+              <div className="text-gray-400 text-sm">{user}</div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="text-green-500 text-sm">Status</span>
               </div>
             </div>
+          </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -189,6 +163,7 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             >
               <User className="w-5 h-5" />
             </Button>
+            <span className="text-white text-sm">{user}</span>
             <Button
               variant="ghost"
               size="icon"

@@ -31,9 +31,7 @@ module.exports = async (req, res) => {
       }
     }
 
-    const convId = body.conversationId;
-    const channelName = `private-conversation-${convId}`;
-    await pusher.trigger(channelName, 'new-message', body);
+    await pusher.trigger('global-chat', 'new-message', body);
 
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
