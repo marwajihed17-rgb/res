@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeUserChat } from '../lib/realtime';
+import { subscribeConversationChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface InvoiceProcessingProps {
@@ -17,6 +17,7 @@ interface InvoiceProcessingProps {
 export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<{ id: string; role: 'user' | 'system'; text: string; status?: string; conversationId?: string | null; attachments: { name: string; url?: string }[]; ts: number }[]>([]);
+  const [conversationId, setConversationId] = useState<string>('');
   const [attachments, setAttachments] = useState<{
     id: string;
     file: File;
@@ -31,13 +32,23 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const MODULE = 'invoice';
-    const unsub = subscribeUserChat(user, MODULE, (data) => {
+    const keyConv = `conv:invoice:${user}`;
+    let id = '';
+    try { id = sessionStorage.getItem(keyConv) || ''; } catch {}
+    if (!id) {
+      id = `${user}-invoice-${Date.now()}`;
+      try { sessionStorage.setItem(keyConv, id); } catch {}
+    }
+    setConversationId(id);
+  }, [user]);
+  useEffect(() => {
+    if (!conversationId) return;
+    const unsub = subscribeConversationChat(conversationId, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
     return () => unsub();
-  }, [user]);
+  }, [conversationId]);
   useEffect(() => {
     const key = `chat:invoice:${user}`;
     try {
@@ -70,7 +81,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
         module: MODULE,
         text: message.trim(),
         attachments: payloadAttachments,
-        conversationId: null,
+        conversationId,
       });
       if (resp) {
         const rid = `${Date.now()}-s`;
