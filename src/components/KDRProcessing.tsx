@@ -32,7 +32,8 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
   useEffect(() => {
     const unsub = subscribeUserChat(user, (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
-      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
+      const atts = Array.isArray((data as any).attachments) ? (data as any).attachments : [];
+      setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: atts, ts: Date.now() }]);
     });
     return () => unsub();
   }, []);

@@ -5,6 +5,7 @@ export type ChatEvent = {
   status: string;
   reply: string;
   conversationId: string | null;
+  attachments?: { name: string; url?: string }[];
 };
 
 function channelForUser(user: string) {
