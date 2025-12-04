@@ -29,7 +29,7 @@ export function renderTextWithLinks(text: string): React.ReactNode {
         className="cursor-pointer underline-offset-4 hover:underline"
         style={{ color: '#4A90F5' }}
       >
-        Open Attachment
+        Link
       </a>,
     );
     lastIndex = end;
