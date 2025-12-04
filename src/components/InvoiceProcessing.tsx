@@ -195,10 +195,10 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
               className="flex animate-fade-in"
               style={{ justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}
             >
-              <div style={{ maxWidth: m.role === 'system' ? '80%' : '75%' }}>
+              <div style={{ maxWidth: '75%' }}>
                 <div className={m.role === 'user' ? "rounded-xl px-4 py-2 bg-gradient-to-r from-[#4A90F5] to-[#C74AFF] text-white animated-gradient" : "rounded-xl px-4 py-2 bg-[#1a1f2e]/80 border border-[#2a3144] text-white"}>
                   {m.status && <span className="text-xs text-gray-400">{m.status}</span>}
-                  {m.text && <div className="whitespace-pre-line">{renderTextWithLinks(m.text)}</div>}
+                  {m.text && <div className="whitespace-pre-wrap">{renderTextWithLinks(m.text)}</div>}
                   {m.attachments.length > 0 && (
                     <div className="mt-2 flex flex-col gap-2">
                       {m.attachments.map((f, i) => (
