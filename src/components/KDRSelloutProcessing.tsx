@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, FileBarChart } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeGlobalChat } from '../lib/realtime';
+import { subscribeModuleChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface KDRSelloutProcessingProps {
@@ -29,7 +29,7 @@ export function KDRSelloutProcessing({ onBack, onLogout, user }: KDRSelloutProce
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const unsub = subscribeGlobalChat((data) => {
+    const unsub = subscribeModuleChat('kdrSellout', (data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
@@ -135,7 +135,7 @@ export function KDRSelloutProcessing({ onBack, onLogout, user }: KDRSelloutProce
             </Button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
-                <FileBarChart className="w-5 h-5 text-white" />
+                <SelloutIcon className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-white">KDRs Sellout Processing</h1>
@@ -215,5 +215,25 @@ export function KDRSelloutProcessing({ onBack, onLogout, user }: KDRSelloutProce
         </div>
       </footer>
     </div>
+  );
+}
+function SelloutIcon(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={props.className}>
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4A90F5" />
+          <stop offset="100%" stopColor="#C74AFF" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="3" width="14" height="18" rx="2" fill="#1a1f2e" stroke="url(#g1)" strokeWidth="1.5" />
+      <circle cx="10" cy="8" r="3" fill="none" stroke="url(#g1)" strokeWidth="1.5" />
+      <path d="M10 8 L10 5 A3 3 0 0 1 13 8 Z" fill="#4A90F5" />
+      <rect x="6" y="12" width="2" height="4" rx="0.5" fill="#4A90F5" />
+      <rect x="9" y="11" width="2" height="5" rx="0.5" fill="#6FB3FF" />
+      <rect x="12" y="10" width="2" height="6" rx="0.5" fill="#C74AFF" />
+      <path d="M17 7 L21 11 L20 12 L16 8 Z" fill="#ff6fa8" stroke="#d45597" strokeWidth="0.8" />
+      <rect x="19.4" y="10.4" width="1.6" height="1.6" transform="rotate(45 20.2 11.2)" fill="#ffd1e4" />
+    </svg>
   );
 }

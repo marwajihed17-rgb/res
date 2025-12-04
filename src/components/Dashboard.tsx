@@ -36,7 +36,7 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
     },
     {
       id: 'kdrSellout' as const,
-      icon: FileBarChart,
+      icon: SelloutIcon,
       title: 'KDRs Sellout Processing',
       description: 'Dedicated KDR sellout chat',
     },
@@ -98,5 +98,25 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
         </div>
       </div>
     </div>
+  );
+}
+function SelloutIcon(props: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={props.className}>
+      <defs>
+        <linearGradient id="dashg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#4A90F5" />
+          <stop offset="100%" stopColor="#C74AFF" />
+        </linearGradient>
+      </defs>
+      <rect x="4" y="3" width="14" height="18" rx="2" fill="#1a1f2e" stroke="url(#dashg1)" strokeWidth="1.5" />
+      <circle cx="10" cy="8" r="3" fill="none" stroke="url(#dashg1)" strokeWidth="1.5" />
+      <path d="M10 8 L10 5 A3 3 0 0 1 13 8 Z" fill="#4A90F5" />
+      <rect x="6" y="12" width="2" height="4" rx="0.5" fill="#4A90F5" />
+      <rect x="9" y="11" width="2" height="5" rx="0.5" fill="#6FB3FF" />
+      <rect x="12" y="10" width="2" height="6" rx="0.5" fill="#C74AFF" />
+      <path d="M17 7 L21 11 L20 12 L16 8 Z" fill="#ff6fa8" stroke="#d45597" strokeWidth="0.8" />
+      <rect x="19.4" y="10.4" width="1.6" height="1.6" transform="rotate(45 20.2 11.2)" fill="#ffd1e4" />
+    </svg>
   );
 }
