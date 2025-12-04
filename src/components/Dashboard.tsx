@@ -11,22 +11,39 @@ interface DashboardProps {
 export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) {
   const cards = [
     {
-      id: 'invoice' as const,
+      key: 'invoice',
+      navigateTo: 'invoice' as const,
       icon: FileText,
       title: 'Invoice Processing',
       description: 'Process invoices with n8n automation',
     },
     {
-      id: 'kdr' as const,
+      key: 'kdr',
+      navigateTo: 'kdr' as const,
       icon: Package,
       title: 'KDR Processing',
       description: 'Manage KDR workflows efficiently',
     },
     {
-      id: 'ga' as const,
+      key: 'ga',
+      navigateTo: 'ga' as const,
       icon: BarChart3,
       title: 'GA Processing',
       description: 'Analytics and reporting automation',
+    },
+    {
+      key: 'kdr-invoice',
+      navigateTo: 'kdr' as const,
+      icon: FileText,
+      title: 'KDRs Invoice Processing',
+      description: 'Process KDRs invoices with automation',
+    },
+    {
+      key: 'kdr-sellout',
+      navigateTo: 'kdr' as const,
+      icon: Package,
+      title: 'KDRs Sellout Processing',
+      description: 'Manage KDRs sellout workflows efficiently',
     },
   ];
 
@@ -52,12 +69,14 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {cards.map((card) => {
             const Icon = card.icon;
-            const isEnabled = authorized.includes(card.id);
+            const isEnabled = authorized.includes(card.navigateTo);
             return (
               <button
-                key={card.id}
-                onClick={() => isEnabled && onNavigate(card.id)}
+                key={card.key}
+                onClick={() => isEnabled && onNavigate(card.navigateTo)}
                 disabled={!isEnabled}
+                aria-label={card.title}
+                aria-disabled={!isEnabled}
                 className="bg-[#1a1f2e]/80 backdrop-blur-sm border border-[#2a3144] rounded-lg p-6 hover:border-[#3a4154] transition-all group hover:bg-[#1a1f2e]/90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex flex-col items-center text-center space-y-3">
