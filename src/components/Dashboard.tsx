@@ -14,7 +14,7 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
       id: 'invoice' as const,
       icon: FileText,
       title: 'Invoice Processing',
-      description: 'Process invoices with n8n automation',
+      description: 'Dedicated general invoice Chat',
     },
     {
       id: 'kdr' as const,
