@@ -1,14 +1,15 @@
 import React from 'react';
 
 export function renderTextWithLinks(text: string): React.ReactNode {
+  const normalizedText = text.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n');
   const urlRegex = /(https?:\/\/[^\s)]+(?:\([^)]*\)[^\s)]*)?)/gi;
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
-  while ((match = urlRegex.exec(text)) !== null) {
+  while ((match = urlRegex.exec(normalizedText)) !== null) {
     const start = match.index;
     const end = urlRegex.lastIndex;
-    if (start > lastIndex) parts.push(text.slice(lastIndex, start));
+    if (start > lastIndex) parts.push(normalizedText.slice(lastIndex, start));
     const rawUrl = match[0];
     let href: string | null = null;
     try {
@@ -34,7 +35,7 @@ export function renderTextWithLinks(text: string): React.ReactNode {
     );
     lastIndex = end;
   }
-  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
-  return parts.length ? parts : text;
+  if (lastIndex < normalizedText.length) parts.push(normalizedText.slice(lastIndex));
+  return parts.length ? parts : normalizedText;
 }
 
