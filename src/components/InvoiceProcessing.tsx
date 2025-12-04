@@ -5,7 +5,7 @@ import { Input } from './ui/input';
 import { FileText } from 'lucide-react';
 import { AttachmentItem } from './AttachmentItem';
 import { uploadFileCancelable, MAX_FILE_SIZE_BYTES } from '../lib/upload';
-import { subscribeModuleChat } from '../lib/realtime';
+import { subscribeGlobalChat } from '../lib/realtime';
 import { renderTextWithLinks } from '../lib/url';
 
 interface InvoiceProcessingProps {
@@ -31,7 +31,7 @@ export function InvoiceProcessing({ onBack, onLogout, user }: InvoiceProcessingP
   const endRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
   useEffect(() => {
-    const unsub = subscribeModuleChat('invoice', (data) => {
+    const unsub = subscribeGlobalChat((data) => {
       const role = data.sender === 'bot' ? 'system' : 'user';
       setMessages((prev) => [...prev, { id: `${Date.now()}-rt`, role, text: data.reply, status: data.status, conversationId: data.conversationId, attachments: [], ts: Date.now() }]);
     });
