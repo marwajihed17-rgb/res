@@ -37,5 +37,3 @@ export function renderTextWithLinks(text: string): React.ReactNode {
   if (lastIndex < text.length) parts.push(text.slice(lastIndex));
   return parts.length ? parts : text;
 }
-
-

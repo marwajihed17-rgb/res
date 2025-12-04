@@ -4,7 +4,7 @@ import logo from 'figma:asset/220dab80c3731b3a44f7ce1394443acd5caffa99.png';
 
 interface DashboardProps {
   authorized: Array<'invoice' | 'kdr' | 'ga'>;
-  onNavigate: (page: 'invoice' | 'kdr' | 'ga') => void;
+  onNavigate: (page: 'invoice' | 'kdr' | 'ga' | 'kdrInvoice' | 'kdrSellout') => void;
   onLogout: () => void;
 }
 
@@ -27,6 +27,18 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
       icon: BarChart3,
       title: 'GA Processing',
       description: 'Analytics and reporting automation',
+    },
+    {
+      id: 'kdrInvoice' as const,
+      icon: FileText,
+      title: 'KDRs Invoice Processing',
+      description: 'Dedicated KDR invoice chat',
+    },
+    {
+      id: 'kdrSellout' as const,
+      icon: Package,
+      title: 'KDRs Sellout Processing',
+      description: 'Dedicated KDR sellout chat',
     },
   ];
 
@@ -52,7 +64,7 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {cards.map((card) => {
             const Icon = card.icon;
-            const isEnabled = authorized.includes(card.id);
+            const isEnabled = card.id === 'kdrInvoice' || card.id === 'kdrSellout' ? authorized.includes('kdr') : authorized.includes(card.id);
             return (
               <button
                 key={card.id}

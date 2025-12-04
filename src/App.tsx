@@ -7,10 +7,12 @@ import { Dashboard } from "./components/Dashboard";
 import { InvoiceProcessing } from "./components/InvoiceProcessing";
 import { KDRProcessing } from "./components/KDRProcessing";
 import { GAProcessing } from "./components/GAProcessing";
+import { KDRInvoiceProcessing } from "./components/KDRInvoiceProcessing";
+import { KDRSelloutProcessing } from "./components/KDRSelloutProcessing";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    "login" | "dashboard" | "invoice" | "kdr" | "ga"
+    "login" | "dashboard" | "invoice" | "kdr" | "ga" | "kdrInvoice" | "kdrSellout"
   >("login");
   const [authorized, setAuthorized] = useState<Array<"invoice" | "kdr" | "ga">>([]);
   const [username, setUsername] = useState<string>("");
@@ -26,6 +28,8 @@ export default function App() {
       else if (h === '/chat/module1') setCurrentPage('invoice');
       else if (h === '/chat/module2') setCurrentPage('ga');
       else if (h === '/chat/module3') setCurrentPage('kdr');
+      else if (h === '/chat/kdr-invoice') setCurrentPage('kdrInvoice');
+      else if (h === '/chat/kdr-sellout') setCurrentPage('kdrSellout');
       else setCurrentPage('login');
     };
     window.addEventListener('hashchange', applyHash);
@@ -34,13 +38,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
-  const go = (page: "login" | "dashboard" | "invoice" | "kdr" | "ga") => {
+  const go = (page: "login" | "dashboard" | "invoice" | "kdr" | "ga" | "kdrInvoice" | "kdrSellout") => {
     perf.startMark('navigate');
     setCurrentPage(page);
     if (page === 'dashboard') window.location.hash = '/modules';
     else if (page === 'invoice') window.location.hash = '/chat/module1';
     else if (page === 'ga') window.location.hash = '/chat/module2';
     else if (page === 'kdr') window.location.hash = '/chat/module3';
+    else if (page === 'kdrInvoice') window.location.hash = '/chat/kdr-invoice';
+    else if (page === 'kdrSellout') window.location.hash = '/chat/kdr-sellout';
     else window.location.hash = '/login';
     perf.endMark('navigate');
   };
@@ -99,6 +105,20 @@ export default function App() {
         )}
         {currentPage === "ga" && authorized.includes('ga') && (
           <GAProcessing
+            onBack={() => go("dashboard")}
+            onLogout={() => go("login")}
+            user={username}
+          />
+        )}
+        {currentPage === "kdrInvoice" && authorized.includes('kdr') && (
+          <KDRInvoiceProcessing
+            onBack={() => go("dashboard")}
+            onLogout={() => go("login")}
+            user={username}
+          />
+        )}
+        {currentPage === "kdrSellout" && authorized.includes('kdr') && (
+          <KDRSelloutProcessing
             onBack={() => go("dashboard")}
             onLogout={() => go("login")}
             user={username}
