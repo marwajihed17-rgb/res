@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, FileBarChart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Package } from 'lucide-react';
@@ -142,10 +142,10 @@ export function KDRProcessing({ onBack, onLogout, user }: KDRProcessingProps) {
             </Button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
-                <Package className="w-5 h-5 text-white" />
+                <FileBarChart className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-white">KDR Processing</h1>
+                <h1 className="text-white">KDR Report Generator</h1>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                   <span className="text-green-500 text-sm">Status</span>

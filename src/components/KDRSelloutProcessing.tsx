@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, Package } from 'lucide-react';
+import { ChevronLeft, User, Trash2, LogOut, Paperclip, Send, FileBarChart } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { AttachmentItem } from './AttachmentItem';
@@ -135,7 +135,7 @@ export function KDRSelloutProcessing({ onBack, onLogout, user }: KDRSelloutProce
             </Button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4A90F5] to-[#C74AFF] flex items-center justify-center animated-gradient">
-                <Package className="w-5 h-5 text-white" />
+                <FileBarChart className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h1 className="text-white">KDRs Sellout Processing</h1>

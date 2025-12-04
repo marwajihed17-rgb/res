@@ -1,4 +1,4 @@
-import { FileText, Package, BarChart3, LogOut } from 'lucide-react';
+import { FileText, FileBarChart, BarChart3, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import logo from 'figma:asset/220dab80c3731b3a44f7ce1394443acd5caffa99.png';
 
@@ -18,9 +18,9 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
     },
     {
       id: 'kdr' as const,
-      icon: Package,
-      title: 'KDR Processing',
-      description: 'Manage KDR workflows efficiently',
+      icon: FileBarChart,
+      title: 'KDR Report Generator',
+      description: 'KDR Report Creation and Analysis',
     },
     {
       id: 'ga' as const,
@@ -36,7 +36,7 @@ export function Dashboard({ authorized, onNavigate, onLogout }: DashboardProps) 
     },
     {
       id: 'kdrSellout' as const,
-      icon: Package,
+      icon: FileBarChart,
       title: 'KDRs Sellout Processing',
       description: 'Dedicated KDR sellout chat',
     },
