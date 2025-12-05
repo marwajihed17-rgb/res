@@ -39,7 +39,7 @@ export function GAProcessing({ onBack, onLogout, user }: GAProcessingProps) {
 
   const handleSend = async () => {
     if (message.trim() || attachments.length) {
-      const payloadAttachments = attachments.map((a) => ({ name: a.file.name, url: a.previewUrl }));
+      const payloadAttachments = attachments.map((a) => ({ name: a.file.name, type: a.file.type, size: a.file.size, url: a.previewUrl, file: a.file }));
       setAttachments([]);
       const id = `${Date.now()}-u`;
       const ts = Date.now();

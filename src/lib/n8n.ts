@@ -14,21 +14,30 @@ export async function sendChat(
     sender: string;
     module: ModuleId;
     text: string;
-    attachments?: { name: string; type?: string; size?: number; url?: string }[];
+    attachments?: { name: string; type?: string; size?: number; url?: string; file?: File }[];
     conversationId?: string | null;
   },
 ): Promise<{ text: string; attachments?: { name: string; url?: string }[] } | null> {
   const directUrl = WEBHOOKS[moduleId];
   try {
-    const directRes = await fetch(directUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(payload),
-      mode: 'cors',
-    }).catch(() => null as any);
+    const hasBinary = Array.isArray(payload.attachments) && payload.attachments.some(a => !!a.file);
+    const options: RequestInit = { method: 'POST', mode: 'cors' };
+    if (hasBinary) {
+      const form = new FormData();
+      form.append('sender', payload.sender);
+      form.append('module', payload.module);
+      form.append('text', payload.text);
+      form.append('conversationId', String(payload.conversationId ?? ''));
+      (payload.attachments || []).forEach((a, i) => {
+        if (a.file) form.append('files', a.file, a.name || `file-${i}`);
+      });
+      form.append('attachments', JSON.stringify((payload.attachments || []).map(a => ({ name: a.name, type: a.type, size: a.size, url: a.url }))));
+      options.body = form;
+    } else {
+      options.headers = { 'Content-Type': 'application/json', 'Accept': 'application/json' };
+      options.body = JSON.stringify(payload);
+    }
+    const directRes = await fetch(directUrl, options).catch(() => null as any);
     if (!directRes || !directRes.ok) return { text: 'Service unavailable' };
     const directJson = await directRes.json().catch(async () => ({ text: await directRes.text() }));
     const text = typeof (directJson.reply ?? directJson.text) === 'string' ? (directJson.reply ?? directJson.text) : JSON.stringify(directJson);
