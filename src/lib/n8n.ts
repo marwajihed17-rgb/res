@@ -3,9 +3,9 @@ export type ModuleId = 'invoice' | 'ga' | 'kdr' | 'kdrInvoice' | 'kdrSellout';
 const WEBHOOKS: Record<ModuleId, string> = {
   invoice: 'https://n8n.srv987649.hstgr.cloud/webhook/a043e005-7e94-42cc-b210-83c52ff908d6',
   ga: 'https://n8n.srv987649.hstgr.cloud/webhook/GA',
-  kdr: 'https://n8n.srv1009033.hstgr.cloud/webhook/24e9013e-ec7b-4a16-8fdf-745c239e84cb',
-  kdrInvoice: 'https://n8n.srv987649.hstgr.cloud/webhook/c5cd89d2-e170-4f2e-b495-d86390f96bad',
-  kdrSellout: 'https://n8n.srv987649.hstgr.cloud/webhook/e8505b44-00f0-440a-a6a4-c545f0389f27',
+  kdr: 'https://n8n.srv987649.hstgr.cloud/webhook/ReportGenerator',
+  kdrInvoice: 'https://n8n.srv987649.hstgr.cloud/webhook/KDRsInvoiceProcessing',
+  kdrSellout: 'https://n8n.srv987649.hstgr.cloud/webhook/SelloutReport',
 };
 
 export async function sendChat(
